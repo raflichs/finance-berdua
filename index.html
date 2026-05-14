@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#0B0B12"/>
+  <title>Finance Berdua 💑</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>html,body,#root{height:100%;margin:0;padding:0;background:#0B0B12;}</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    const FIREBASE_CONFIG = {
+      apiKey:            "AIzaSyDxRlytnV4RnHksjhErotD9fsLGxg4J5g4",
+      authDomain:        "finance-berdua.firebaseapp.com",
+      databaseURL:       "https://finance-berdua-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId:         "finance-berdua",
+      storageBucket:     "finance-berdua.firebasestorage.app",
+      messagingSenderId: "974859670020",
+      appId:             "1:974859670020:web:b99a6a204fa8698a43db51",
+    };
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.database();
+  </script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const DB_PATH = "finance_berdua";
+    const KATEGORI = {
+      Pemasukan:   ["Gaji","Bonus","Lainnya"],
+      Pengeluaran: ["Makan","Transport","Belanja","Tagihan","Nongkrong","Hiburan","Tabungan","Lainnya"],
+    };
+    const EMOJI = {
+      Gaji:"💼",Bonus:"🎁",Makan:"🍜",Transport:"🚗",
+      Belanja:"🛍️",Tagihan:"📋",Nongkrong:"☕",Hiburan:"🎮",
+      Tabungan:"🐷",Lainnya:"📦",
+    };
+    const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const fmtRp   = n => "Rp " + Math.abs(Math.round(n)).toLocaleString("id-ID");
+    const today   = () => new Date().toISOString().split("T")[0];
+    const fmtDate = s => { if (!s) return ""; const [,m,d] = s.split("-"); return `${d} ${BULAN[+m-1]}`; };
+
+    // ── IndexedDB untuk simpan template binary ──
+    const IDB = {
+      open: () => new Promise((res,rej) => {
+        const r = indexedDB.open("finance_berdua_db", 1);
+        r.onupgradeneeded = e => e.target.result.createObjectStore("tpl");
+        r.onsuccess = e => res(e.target.result);
+        r.onerror   = () => rej();
+      }),
+      save: async (name, buffer) => {
+        try { const d = await IDB.open(); d.transaction("tpl","readwrite").objectStore("tpl").put({name,buffer},"k"); } catch {}
+      },
+      load: async () => {
+        try {
+          const d = await IDB.open();
+          return await new Promise((res,rej) => {
+            const r = d.transaction("tpl","readonly").objectStore("tpl").get("k");
+            r.onsuccess = () => res(r.result||null);
+            r.onerror   = () => rej(null);
+          });
+        } catch { return null; }
+      },
+    };
+
+    // ── Parse tanggal dari Excel ──
+    const excelDateToStr = val => {
+      if (!val) return null;
+      if (typeof val === "string") {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+        const m = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+        return null;
+      }
+      if (typeof val === "number") {
+        const d = new Date(Math.round((val-25569)*86400*1000));
+        return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+      }
+      return null;
+    };
+
+    // ── Download helper (iOS Safari compatible) ──
+    const downloadBlob = (blob, fileName) => {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement("a");
+      a.style.display = "none";
+      a.href     = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    };
+
+    const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}::-webkit-scrollbar{display:none;}body{background:#0B0B12;}
+.app{font-family:'DM Sans',sans-serif;background:#0B0B12;min-height:100dvh;color:#f0f0f8;max-width:430px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
+.screen{flex:1;display:flex;flex-direction:column;}.scroll{flex:1;overflow-y:auto;padding:0 20px 100px;}
+.hdr{padding:52px 20px 12px;display:flex;justify-content:space-between;align-items:flex-start;}
+.hdr-sub{font-size:12px;color:#555;font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
+.hdr-title{font-size:22px;font-weight:700;color:#f0f0f8;margin-top:2px;}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.badge{display:flex;align-items:center;gap:5px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;}
+.badge-on{background:#0d1a0d;border:1px solid #2a4a2a;color:#4ade80;}
+.badge-off{background:#1a1010;border:1px solid #4a2a2a;color:#f87171;}
+.badge-partner{background:#1a0d2a;border:1px solid #4a2a5a;color:#c084fc;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+.dot{width:7px;height:7px;border-radius:50%;}.dot-on{background:#4ade80;animation:pulse 2s infinite;}
+.dot-off{background:#f87171;}.dot-pur{background:#c084fc;animation:pulse 2s infinite;}
+.balance-card{margin:0 20px 20px;background:linear-gradient(135deg,#1a1040,#0e1a3a);border-radius:24px;padding:24px;border:1px solid #2a2060;position:relative;overflow:hidden;}
+.balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.25),transparent 70%);}
+.balance-card::after{content:'';position:absolute;bottom:-30px;left:-20px;width:110px;height:110px;background:radial-gradient(circle,rgba(58,142,255,.2),transparent 70%);}
+.bal-label{font-size:11px;color:#8888aa;text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+.bal-amount{font-size:34px;font-weight:700;color:#fff;margin:6px 0 20px;font-family:'DM Mono',monospace;letter-spacing:-1px;}
+.bal-row{display:flex;gap:10px;}.mini-stat{flex:1;background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;}
+.mini-label{font-size:10px;color:#8888aa;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:4px;}
+.mini-dot{width:6px;height:6px;border-radius:50%;}.mini-val{font-size:14px;font-weight:700;margin-top:4px;font-family:'DM Mono',monospace;}
+.sec-title{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.cat-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cat-bar-bg{flex:1;background:#1e1e2e;border-radius:999px;height:5px;}
+.cat-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#7c5cfc,#3a8eff);}
+.tx-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #13131c;}
+.tx-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.tx-info{flex:1;min-width:0;}.tx-desc{font-size:14px;font-weight:600;color:#f0f0f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-meta{font-size:11px;color:#555;margin-top:2px;}.who-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-block;margin-top:3px;}
+.tx-amount{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0;}
+.del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.35;padding:4px;line-height:1;}
+.form-card{background:#13131c;border-radius:24px;border:1px solid #1e1e2e;padding:20px;}
+.toggle-row{display:flex;background:#0d0d14;border-radius:14px;padding:4px;margin-bottom:20px;border:1px solid #1e1e2e;}
+.tog-btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:none;color:#444;}
+.tog-in{background:#0d1f0d!important;color:#4ade80!important;}.tog-out{background:#1f0d0d!important;color:#f87171!important;}
+.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:8px;}
+.inp{width:100%;background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:14px;padding:13px 16px;color:#f0f0f8;font-family:inherit;font-size:15px;outline:none;margin-bottom:14px;transition:border-color .2s;-webkit-appearance:none;}
+.inp:focus{border-color:#7c5cfc;}.inp::placeholder{color:#444;}
+.kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.kat-item{background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:12px;padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:#666;cursor:pointer;line-height:1.4;}
+.kat-item.sel{border-color:#7c5cfc;background:#7c5cfc1a;color:#c4a8ff;}
+.submit-btn{width:100%;padding:15px;border-radius:16px;border:none;background:linear-gradient(135deg,#7c5cfc,#3a8eff);color:white;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;}
+.filter-row{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 12px;scrollbar-width:none;}
+.filter-pill{flex-shrink:0;background:#16161f;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;color:#666;cursor:pointer;white-space:nowrap;}
+.filter-pill.sel{background:#7c5cfc22;border-color:#7c5cfc;color:#c4a8ff;}
+.export-btn{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-family:inherit;font-size:11px;font-weight:700;color:#888;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e1e2e;border:1px solid #3a3a5a;border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#f0f0f8;z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .25s ease;}
+.toast.err{background:#1f0d0d;border-color:#5a2a2a;color:#f87171;}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.sync-bar{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c5cfc,#3a8eff,#7c5cfc);background-size:200%;animation:syncAnim 1.5s linear infinite;z-index:9999;}
+@keyframes syncAnim{0%{background-position:0%}100%{background-position:200%;}}
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:80px;background:#0d0d14ee;border-top:1px solid #1e1e2e;display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;backdrop-filter:blur(24px);}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 20px;border-radius:16px;cursor:pointer;border:none;background:none;}
+.nav-btn.act{background:#1e1e2e;}.nav-icon{font-size:22px;line-height:1;}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#444;}.nav-btn.act .nav-label{color:#c4a8ff;}
+.empty{text-align:center;padding:48px 20px;}.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-text{font-size:15px;font-weight:600;color:#555;}.empty-sub{font-size:13px;margin-top:6px;color:#333;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+.modal-sheet{background:#13131c;border-radius:28px 28px 0 0;border:1px solid #2a2a3a;padding:28px 24px 40px;width:100%;max-width:430px;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-title{font-size:18px;font-weight:700;color:#f0f0f8;margin-bottom:6px;text-align:center;}
+.modal-sub{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5;text-align:center;}
+.modal-close{width:100%;padding:13px;border-radius:16px;border:1px solid #2a2a3a;background:#1e1e2e;color:#888;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;}
+`;
+
+    function App() {
+      const [tab, setTab]                     = useState("dashboard");
+      const [transactions, setTransactions]   = useState([]);
+      const [myName, setMyName]               = useState("");
+      const [nameInput, setNameInput]         = useState("");
+      const [nameSet, setNameSet]             = useState(false);
+      const [syncing, setSyncing]             = useState(false);
+      const [online, setOnline]               = useState(false);
+      const [partnerOnline, setPartnerOnline] = useState(false);
+      const [partnerName, setPartnerName]     = useState("");
+      const [toast, setToast]                 = useState(null);
+      const [filterJenis, setFilterJenis]     = useState("Semua");
+      const [templateData, setTemplateData]   = useState(null);
+      const [templateName, setTemplateName]   = useState("");
+      const [exportModal, setExportModal]     = useState(false);
+      const [importModal, setImportModal]     = useState(null);
+      const [form, setForm] = useState({ tanggal:today(), jenis:"Pengeluaran", kategori:"Makan", deskripsi:"", nominal:"" });
+
+      const nameRef    = useRef("");
+      const writingRef = useRef(false);
+      const txsRef     = useRef([]);
+
+      const showToast = (msg, type="ok") => {
+        setToast({msg,type});
+        setTimeout(() => setToast(null), 2800);
+      };
+
+      // Load template dari IndexedDB saat buka app
+      useEffect(() => {
+        IDB.load().then(saved => {
+          if (saved) { setTemplateData(saved.buffer); setTemplateName(saved.name); }
+        });
+      }, []);
+
+      // Firebase listener
+      useEffect(() => {
+        if (!nameSet) return;
+        nameRef.current = myName;
+
+        const txRef = db.ref(`${DB_PATH}/transactions`);
+        const unsubTx = txRef.on("value", snap => {
+          if (writingRef.current) return;
+          const data = snap.val();
+          const list = data ? Object.values(data).sort((a,b) => b.id-a.id) : [];
+          txsRef.current = list;
+          setTransactions(list);
+          setOnline(true);
+        }, () => setOnline(false));
+
+        const sendHB = () => db.ref(`${DB_PATH}/heartbeats/${myName}`).set(Date.now()).catch(()=>{});
+        sendHB();
+        const hbInt = setInterval(sendHB, 5000);
+
+        const hbRef = db.ref(`${DB_PATH}/heartbeats`);
+        const unsubHB = hbRef.on("value", snap => {
+          const hbs = snap.val() || {};
+          const now = Date.now();
+          const partners = Object.entries(hbs).filter(([n,ts]) => n !== myName && (now-ts) < 12000);
+          setPartnerOnline(partners.length > 0);
+          if (partners.length > 0) setPartnerName(partners[0][0]);
+        });
+
+        return () => {
+          txRef.off("value", unsubTx);
+          hbRef.off("value", unsubHB);
+          clearInterval(hbInt);
+          db.ref(`${DB_PATH}/heartbeats/${myName}`).remove();
+        };
+      }, [nameSet, myName]);
+
+      // Save ke Firebase
+      const saveTx = async list => {
+        writingRef.current = true;
+        setSyncing(true);
+        try {
+          const obj = {};
+          list.forEach(t => { obj[t.id] = t; });
+          await db.ref(`${DB_PATH}/transactions`).set(obj);
+          setOnline(true);
+        } catch { setOnline(false); showToast("Gagal sync, cek koneksi!", "err"); }
+        setSyncing(false);
+        writingRef.current = false;
+      };
+
+      const handleSubmit = async () => {
+        if (!form.nominal || isNaN(+form.nominal) || +form.nominal <= 0) { showToast("Nominal harus diisi dan valid!", "err"); return; }
+        if (!form.deskripsi.trim()) { showToast("Deskripsi harus diisi!", "err"); return; }
+        const newTx = {...form, nominal:+form.nominal, id:Date.now(), addedBy:myName};
+        const updated = [newTx, ...txsRef.current];
+        txsRef.current = updated;
+        setTransactions(updated);
+        await saveTx(updated);
+        setForm({ tanggal:today(), jenis:"Pengeluaran", kategori:"Makan", deskripsi:"", nominal:"" });
+        showToast("Transaksi tersimpan! ✅");
+        setTab("history");
+      };
+
+      const handleDelete = async id => {
+        const updated = txsRef.current.filter(t => t.id !== id);
+        txsRef.current = updated;
+        setTransactions(updated);
+        await saveTx(updated);
+        showToast("Transaksi dihapus 🗑️", "err");
+      };
+
+      // Upload template + parse data lama
+      const handleTemplateUpload = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const buffer = ev.target.result;
+          setTemplateData(buffer);
+          setTemplateName(file.name);
+          IDB.save(file.name, buffer);
+
+          try {
+            const wb     = XLSX.read(new Uint8Array(buffer), { type:"array" });
+            const parsed = [];
+            BULAN.forEach(bulan => {
+              if (!wb.SheetNames.includes(bulan)) return;
+              const rows = XLSX.utils.sheet_to_json(wb.Sheets[bulan], { header:1, defval:"" });
+              for (let i = 1; i < rows.length; i++) {
+                const [tanggalRaw, jenisRaw, kategori, deskripsi, nominalRaw] = rows[i];
+                if (!tanggalRaw && !deskripsi) continue;
+                if (String(deskripsi).toUpperCase().includes("SUMMARY")) break;
+                const tanggal = excelDateToStr(tanggalRaw);
+                if (!tanggal) continue;
+                const nominal = parseFloat(String(nominalRaw).replace(/[^0-9.]/g,""));
+                if (!nominal || isNaN(nominal)) continue;
+                const jenis   = String(jenisRaw).toLowerCase() === "masuk" ? "Pemasukan" : "Pengeluaran";
+                const allKat  = [...KATEGORI.Pemasukan, ...KATEGORI.Pengeluaran];
+                parsed.push({
+                  id:       parseInt(tanggal.replace(/-/g,"")) * 1000 + i,
+                  tanggal, jenis,
+                  kategori: allKat.includes(kategori) ? kategori : "Lainnya",
+                  deskripsi: String(deskripsi) || "-",
+                  nominal,
+                  addedBy: "Excel Import",
+                });
+              }
+            });
+            if (parsed.length > 0) setImportModal({ count:parsed.length, txs:parsed });
+            else showToast("Template tersimpan! Belum ada data. 📂");
+          } catch(err) {
+            console.error(err);
+            showToast("Template tersimpan! 📂");
+          }
+        };
+        reader.readAsArrayBuffer(file);
+        e.target.value = "";
+      };
+
+      const handleConfirmImport = async txs => {
+        setImportModal(null);
+        const existing = txsRef.current.filter(t => t.addedBy !== "Excel Import");
+        const merged   = [...txs, ...existing].sort((a,b) => b.id-a.id);
+        txsRef.current = merged;
+        setTransactions(merged);
+        await saveTx(merged);
+        showToast(`${txs.length} transaksi berhasil diimport! ✅`);
+      };
+
+      // Export ke Excel — fix: append a ke DOM biar iOS Safari bisa download
+      const handleExport = () => {
+        if (!templateData) { showToast("Upload dulu file Excel lo di dashboard!", "err"); return; }
+        try {
+          const wb = XLSX.read(new Uint8Array(templateData), { type:"array" });
+          const byMonth = {};
+          [...transactions]
+            .sort((a,b) => new Date(a.tanggal)-new Date(b.tanggal))
+            .forEach(t => {
+              const key = BULAN[+t.tanggal.split("-")[1]-1];
+              if (!byMonth[key]) byMonth[key] = [];
+              byMonth[key].push(t);
+            });
+
+          Object.entries(byMonth).forEach(([bulan, txs]) => {
+            if (!wb.SheetNames.includes(bulan)) return;
+            const ws    = wb.Sheets[bulan];
+            const range = XLSX.utils.decode_range(ws["!ref"] || "A1:I200");
+            // Hapus data lama (baris 2 ke bawah, col A-F)
+            for (let r = 1; r <= range.e.r; r++)
+              for (let c = 0; c <= 5; c++) {
+                const ref = XLSX.utils.encode_cell({r,c});
+                if (ws[ref]) delete ws[ref];
+              }
+            // Tulis data baru
+            let saldo = 0;
+            txs.forEach((t, i) => {
+              const row = i + 1;
+              saldo += t.jenis === "Pemasukan" ? t.nominal : -t.nominal;
+              [
+                { v: Math.floor((new Date(t.tanggal+"T00:00:00") - new Date(Date.UTC(1899,11,30))) / 86400000), t:"n", z:"DD/MM/YYYY" },
+                { v: t.jenis === "Pemasukan" ? "masuk" : "keluar", t:"s" },
+                { v: t.kategori, t:"s" },
+                { v: t.deskripsi, t:"s" },
+                { v: t.nominal, t:"n" },
+                { v: saldo, t:"n" },
+              ].forEach((cell,c) => { ws[XLSX.utils.encode_cell({r:row,c})] = cell; });
+            });
+            if (txs.length > 0) {
+              const nr = XLSX.utils.decode_range(ws["!ref"] || "A1:I1");
+              nr.e.r = Math.max(nr.e.r, txs.length);
+              ws["!ref"] = XLSX.utils.encode_range(nr);
+            }
+          });
+
+          const arr  = XLSX.write(wb, { bookType:"xlsx", type:"array" });
+          const blob = new Blob([arr], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+          downloadBlob(blob, templateName || "Finance_Tracker_Pro.xlsx");
+          setExportModal(true);
+        } catch(err) {
+          console.error("Export error:", err);
+          showToast("Export gagal: " + err.message, "err");
+        }
+      };
+
+      const summary = (() => {
+        const p = transactions.filter(t=>t.jenis==="Pemasukan").reduce((s,t)=>s+t.nominal,0);
+        const q = transactions.filter(t=>t.jenis==="Pengeluaran").reduce((s,t)=>s+t.nominal,0);
+        const byKat = {};
+        transactions.filter(t=>t.jenis==="Pengeluaran").forEach(t=>{ byKat[t.kategori]=(byKat[t.kategori]||0)+t.nominal; });
+        return { pemasukan:p, pengeluaran:q, saldo:p-q, katSorted:Object.entries(byKat).sort((a,b)=>b[1]-a[1]) };
+      })();
+
+      const filteredTx = filterJenis==="Semua" ? transactions : transactions.filter(t=>t.jenis===filterJenis||t.kategori===filterJenis);
+
+      // ── Name setup ──
+      if (!nameSet) return (
+        <div style={{fontFamily:"'DM Sans',sans-serif",background:"#0B0B12",minHeight:"100dvh",color:"#f0f0f8",maxWidth:430,margin:"0 auto",display:"flex",flexDirection:"column",justifyContent:"center",padding:"40px 24px"}}>
+          <style>{CSS}</style>
+          <div style={{textAlign:"center",marginBottom:32}}>
+            <div style={{fontSize:52,marginBottom:14}}>💑</div>
+            <div style={{fontSize:24,fontWeight:700}}>Finance Berdua</div>
+            <div style={{fontSize:14,color:"#444",marginTop:8,lineHeight:1.5}}>Tracking keuangan bareng pasangan<br/>sync otomatis & real-time</div>
+          </div>
+          <div className="form-card">
+            <div className="field-label">Nama lo siapa?</div>
+            <input className="inp" placeholder="Contoh: Reza atau Dea..." value={nameInput}
+              onChange={e=>setNameInput(e.target.value)}
+              onKeyDown={e=>{ if(e.key==="Enter"&&nameInput.trim()){ setMyName(nameInput.trim()); setNameSet(true); }}}
+              autoFocus/>
+            <button className="submit-btn" disabled={!nameInput.trim()} onClick={()=>{ setMyName(nameInput.trim()); setNameSet(true); }}>
+              Masuk 🚀
+            </button>
+            <div style={{fontSize:12,color:"#333",textAlign:"center",marginTop:14,lineHeight:1.6}}>
+              💡 Buka link yang sama di HP pasangan lo<br/>data otomatis ke-share & real-time
+            </div>
+          </div>
+        </div>
+      );
+
+      const jenisKat = KATEGORI[form.jenis];
+
+      return (
+        <div className="app">
+          <style>{CSS}</style>
+          {syncing && <div className="sync-bar"/>}
+          {toast && <div className={`toast ${toast.type==="err"?"err":""}`}>{toast.msg}</div>}
+
+          <div className="screen">
+
+            {/* ─── DASHBOARD ─── */}
+            {tab==="dashboard" && <>
+              <div className="hdr">
+                <div>
+                  <div className="hdr-sub">Finance Berdua 💑</div>
+                  <div className="hdr-title">Halo, {myName}!</div>
+                </div>
+                <div className="hdr-right">
+                  <div className={`badge ${online?"badge-on":"badge-off"}`}>
+                    <div className={`dot ${online?"dot-on":"dot-off"}`}/>
+                    {online?"Tersync":"Offline"}
+                  </div>
+                  {partnerOnline && <div className="badge badge-partner"><div className="dot dot-pur"/>{partnerName} online</div>}
+                </div>
+              </div>
+              <div className="scroll">
+                {/* Template card */}
+                {!templateData ? (
+                  <label style={{display:"flex",alignItems:"center",gap:12,background:"#13131c",border:"1.5px dashed #2a2a3a",borderRadius:20,padding:"14px 18px",marginBottom:16,cursor:"pointer"}}>
+                    <div style={{fontSize:28}}>📂</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:13,fontWeight:700,color:"#888"}}>Upload template Excel lo</div>
+                      <div style={{fontSize:11,color:"#444",marginTop:2}}>Tap → pilih Finance_Tracker_Pro.xlsx</div>
+                    </div>
+                    <input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
+                  </label>
+                ) : (
+                  <div style={{display:"flex",alignItems:"center",gap:10,background:"#0d1f0d",border:"1px solid #2a4a2a",borderRadius:16,padding:"10px 16px",marginBottom:16}}>
+                    <div style={{fontSize:20}}>✅</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:12,fontWeight:700,color:"#4ade80"}}>{templateName}</div>
+                      <div style={{fontSize:10,color:"#555",marginTop:1}}>Template siap dipakai</div>
+                    </div>
+                    <label style={{cursor:"pointer",fontSize:11,color:"#888",fontWeight:700,padding:"4px 10px",background:"#1e1e2e",borderRadius:999,border:"1px solid #2a2a3a",flexShrink:0}}>
+                      Ganti<input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
+                    </label>
+                  </div>
+                )}
+
+                {/* Balance */}
+                <div className="balance-card">
+                  <div className="bal-label">Saldo Bersama</div>
+                  <div className="bal-amount" style={{color:summary.saldo<0?"#f87171":"#fff"}}>{fmtRp(summary.saldo)}</div>
+                  <div className="bal-row">
+                    <div className="mini-stat">
+                      <div className="mini-label"><div className="mini-dot" style={{background:"#4ade80"}}/> Pemasukan</div>
+                      <div className="mini-val" style={{color:"#4ade80"}}>{fmtRp(summary.pemasukan)}</div>
+                    </div>
+                    <div className="mini-stat">
+                      <div className="mini-label"><div className="mini-dot" style={{background:"#f87171"}}/> Pengeluaran</div>
+                      <div className="mini-val" style={{color:"#f87171"}}>{fmtRp(summary.pengeluaran)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Kategori */}
+                {summary.katSorted.length > 0 && <>
+                  <div className="sec-title">Kategori terboros</div>
+                  {summary.katSorted.slice(0,5).map(([kat,val]) => {
+                    const pct = Math.round((val/summary.pengeluaran)*100);
+                    return (
+                      <div key={kat} className="cat-bar-wrap">
+                        <div style={{fontSize:20,width:28,textAlign:"center"}}>{EMOJI[kat]}</div>
+                        <div style={{flex:1}}>
+                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                            <span style={{fontSize:13,fontWeight:600,color:"#bbb"}}>{kat}</span>
+                            <span style={{fontSize:12,fontFamily:"DM Mono",color:"#666"}}>{fmtRp(val)}</span>
+                          </div>
+                          <div className="cat-bar-bg"><div className="cat-bar-fill" style={{width:`${pct}%`}}/></div>
+                        </div>
+                        <span style={{fontSize:11,color:"#555",fontFamily:"DM Mono",width:30,textAlign:"right"}}>{pct}%</span>
+                      </div>
+                    );
+                  })}
+                  <div style={{height:16}}/>
+                </>}
+
+                {/* Recent */}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                  <div className="sec-title" style={{margin:0}}>Transaksi terakhir</div>
+                  <button className="export-btn" onClick={handleExport}>📥 Export Excel</button>
+                </div>
+                {transactions.length===0
+                  ? <div className="empty"><div className="empty-icon">🧾</div><div className="empty-text">Belum ada transaksi</div><div className="empty-sub">Tap ➕ Input untuk catat yang pertama</div></div>
+                  : transactions.slice(0,5).map(t=>(
+                    <div key={t.id} className="tx-item">
+                      <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
+                      <div className="tx-info">
+                        <div className="tx-desc">{t.deskripsi}</div>
+                        <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
+                        <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
+                          {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
+                        </span>
+                      </div>
+                      <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
+                        {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </>}
+
+            {/* ─── INPUT ─── */}
+            {tab==="input" && <>
+              <div className="hdr"><div><div className="hdr-sub">Catat transaksi</div><div className="hdr-title">Input Baru ✏️</div></div></div>
+              <div className="scroll">
+                <div className="form-card">
+                  <div className="toggle-row">
+                    <button className={`tog-btn ${form.jenis==="Pemasukan"?"tog-in":""}`} onClick={()=>setForm(f=>({...f,jenis:"Pemasukan",kategori:"Gaji"}))}>⬆ Pemasukan</button>
+                    <button className={`tog-btn ${form.jenis==="Pengeluaran"?"tog-out":""}`} onClick={()=>setForm(f=>({...f,jenis:"Pengeluaran",kategori:"Makan"}))}>⬇ Pengeluaran</button>
+                  </div>
+                  <div className="field-label">Nominal (Rp)</div>
+                  <input className="inp" type="number" inputMode="numeric" placeholder="0" value={form.nominal} onChange={e=>setForm(f=>({...f,nominal:e.target.value}))}/>
+                  <div className="field-label">Tanggal</div>
+                  <input className="inp" type="date" value={form.tanggal} onChange={e=>setForm(f=>({...f,tanggal:e.target.value}))}/>
+                  <div className="field-label">Kategori</div>
+                  <div className="kat-grid">
+                    {jenisKat.map(k=>(
+                      <div key={k} className={`kat-item ${form.kategori===k?"sel":""}`} onClick={()=>setForm(f=>({...f,kategori:k}))}>
+                        <div style={{fontSize:22,marginBottom:4}}>{EMOJI[k]}</div>{k}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="field-label">Deskripsi</div>
+                  <input className="inp" placeholder="Contoh: makan siang berdua..." value={form.deskripsi} onChange={e=>setForm(f=>({...f,deskripsi:e.target.value}))}/>
+                  <button className="submit-btn" onClick={handleSubmit} disabled={syncing}>{syncing?"Menyimpan...":"💾 Simpan & Sync"}</button>
+                </div>
+              </div>
+            </>}
+
+            {/* ─── HISTORY ─── */}
+            {tab==="history" && <>
+              <div className="hdr">
+                <div><div className="hdr-sub">Semua catatan</div><div className="hdr-title">Riwayat 📜</div></div>
+                <button className="export-btn" onClick={handleExport}>📥 Excel</button>
+              </div>
+              <div className="scroll">
+                <div className="filter-row">
+                  {["Semua","Pemasukan","Pengeluaran","Makan","Transport","Belanja","Tagihan","Nongkrong","Hiburan","Tabungan"].map(f=>(
+                    <div key={f} className={`filter-pill ${filterJenis===f?"sel":""}`} onClick={()=>setFilterJenis(f)}>{f}</div>
+                  ))}
+                </div>
+                <div className="sec-title">{filteredTx.length} transaksi</div>
+                {filteredTx.length===0
+                  ? <div className="empty"><div className="empty-icon">🔍</div><div className="empty-text">Tidak ada transaksi</div><div className="empty-sub">Coba filter lain</div></div>
+                  : filteredTx.map(t=>(
+                    <div key={t.id} className="tx-item">
+                      <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
+                      <div className="tx-info">
+                        <div className="tx-desc">{t.deskripsi}</div>
+                        <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
+                        <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
+                          {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
+                        </span>
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+                        <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
+                          {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
+                        </div>
+                        <button className="del-btn" onClick={()=>handleDelete(t.id)}>🗑️</button>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </>}
+
+            {/* ─── IMPORT MODAL ─── */}
+            {importModal && (
+              <div className="modal-overlay" onClick={()=>setImportModal(null)}>
+                <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
+                  <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📊</div>
+                  <div className="modal-title">Data Excel ditemukan!</div>
+                  <div className="modal-sub">Gua nemu <b style={{color:"#f0f0f8"}}>{importModal.count} transaksi</b> di file Excel lo. Mau diimport semuanya ke app?</div>
+                  <div style={{background:"#0d0d14",borderRadius:16,padding:"14px 16px",marginBottom:16,border:"1px solid #1e1e2e"}}>
+                    {["Data lama dari Excel masuk ke riwayat app","Data yang udah ada di app tetap aman","Ga perlu input ulang dari awal 🎉"].map((text,i)=>(
+                      <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
+                        <span>✅</span><span style={{fontSize:13,color:"#888",lineHeight:1.4}}>{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="submit-btn" style={{marginBottom:10}} onClick={()=>handleConfirmImport(importModal.txs)}>
+                    Import {importModal.count} transaksi
+                  </button>
+                  <button className="modal-close" onClick={()=>{ setImportModal(null); showToast("Template tersimpan tanpa import 📂"); }}>
+                    Lewatin, simpan template aja
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ─── EXPORT MODAL ─── */}
+            {exportModal && (
+              <div className="modal-overlay" onClick={()=>setExportModal(false)}>
+                <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
+                  <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📥</div>
+                  <div className="modal-title">Export berhasil!</div>
+                  <div className="modal-sub">File <b style={{color:"#f0f0f8"}}>{templateName||"Finance_Tracker_Pro.xlsx"}</b> udah ke-download dengan semua transaksi terbaru 🎉</div>
+                  <div style={{background:"#0d0d14",borderRadius:16,padding:"14px 16px",marginBottom:16,border:"1px solid #1e1e2e"}}>
+                    {["Data masuk ke sheet bulan yang sesuai","Summary & Dashboard otomatis ke-update","File siap dibuka di Excel / Google Sheets"].map((text,i)=>(
+                      <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
+                        <span>✅</span><span style={{fontSize:13,color:"#888",lineHeight:1.4}}>{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="modal-close" onClick={()=>setExportModal(false)}>Oke, mantap! 👍</button>
+                </div>
+              </div>
+            )}
+
+            {/* ─── BOTTOM NAV ─── */}
+            <div className="bnav">
+              {[{id:"dashboard",icon:"📊",label:"Dashboard"},{id:"input",icon:"➕",label:"Input"},{id:"history",icon:"📜",label:"Riwayat"}].map(n=>(
+                <button key={n.id} className={`nav-btn ${tab===n.id?"act":""}`} onClick={()=>setTab(n.id)}>
+                  <div className="nav-icon">{n.icon}</div>
+                  <div className="nav-label">{n.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App/>);
+  </script>
+</body>
+</html>
