@@ -144,6 +144,8 @@
 .tog-in{background:#0d1f0d!important;color:#4ade80!important;}.tog-out{background:#1f0d0d!important;color:#f87171!important;}
 .field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:8px;}
 .inp{width:100%;background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:14px;padding:13px 16px;color:#f0f0f8;font-family:inherit;font-size:15px;outline:none;margin-bottom:14px;transition:border-color .2s;-webkit-appearance:none;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;}
 .inp:focus{border-color:#7c5cfc;}.inp::placeholder{color:#444;}
 .kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
 .kat-item{background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:12px;padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:#666;cursor:pointer;line-height:1.4;}
@@ -191,6 +193,16 @@
       const [importModal, setImportModal]     = useState(null);
       const [form, setForm] = useState({ tanggal:today(), jenis:"Pengeluaran", kategori:"Makan", deskripsi:"", nominal:"" });
 
+      // ── Split Bill State ──
+      const [sbFriends, setSbFriends]     = useState([]);
+      const [sbItems, setSbItems]         = useState([]);
+      const [sbFriendInput, setSbFriendInput] = useState("");
+      const [sbItemName, setSbItemName]   = useState("");
+      const [sbItemPrice, setSbItemPrice] = useState("");
+      const [sbSelectedFor, setSbSelectedFor] = useState(["Gue"]);
+      const [sbPaidMap, setSbPaidMap]     = useState({});
+      const [sbExported, setSbExported]   = useState(false);
+
       const nameRef    = useRef("");
       const writingRef = useRef(false);
       const txsRef     = useRef([]);
@@ -207,10 +219,52 @@
         });
       }, []);
 
+      // ── Minta izin notifikasi & setup listener ──
+      const setupNotif = async (name) => {
+        if (!("Notification" in window)) return;
+        try {
+          const perm = await Notification.requestPermission();
+          if (perm !== "granted") return;
+
+          // Listen ke notif yang ditujukan ke user ini di Firebase
+          db.ref(`finance_berdua/notifs/${name}`).on("child_added", snap => {
+            const n = snap.val();
+            if (!n) return;
+            // Tampilkan notifikasi browser
+            if (document.visibilityState === "hidden" || document.visibilityState === "visible") {
+              new Notification(n.title, {
+                body: n.body,
+                icon: "/icon-192.png",
+                badge: "/icon-192.png",
+                vibrate: [200, 100, 200],
+              });
+            }
+            // Hapus notif dari DB setelah ditampilkan
+            snap.ref.remove();
+          });
+        } catch(e) { console.log("Notif setup failed:", e); }
+      };
+
+      // ── Kirim notifikasi ke user lain via Firebase DB ──
+      const sendNotif = async (title, body) => {
+        try {
+          // Ambil semua nama user kecuali sendiri
+          const snap = await db.ref("finance_berdua/heartbeats").get();
+          const users = snap.val() || {};
+          const others = Object.keys(users).filter(n => n !== nameRef.current);
+          if (others.length === 0) return;
+          const now = Date.now();
+          await Promise.all(others.map(name =>
+            db.ref(`finance_berdua/notifs/${name}`).push({ title, body, ts: now })
+          ));
+        } catch(e) { console.log("Send notif failed:", e); }
+      };
+
       // Firebase listener
       useEffect(() => {
         if (!nameSet) return;
         nameRef.current = myName;
+        setupNotif(myName);
 
         const txRef = db.ref(`${DB_PATH}/transactions`);
         const unsubTx = txRef.on("value", snap => {
@@ -257,14 +311,89 @@
         writingRef.current = false;
       };
 
-      const handleSubmit = async () => {
-        if (!form.nominal || isNaN(+form.nominal) || +form.nominal <= 0) { showToast("Nominal harus diisi dan valid!", "err"); return; }
-        if (!form.deskripsi.trim()) { showToast("Deskripsi harus diisi!", "err"); return; }
-        const newTx = {...form, nominal:+form.nominal, id:Date.now(), addedBy:myName};
+      // ── Split Bill Helpers ──
+      const FRIEND_COLORS = ["#f59e0b","#4ade80","#f87171","#38bdf8","#fb923c"];
+      const SB_PERSON_COLORS = {
+        "Gue":      { bg:"#1e1e3a", color:"#8888ff" },
+        "Pasangan": { bg:"#1a0d2a", color:"#c084fc" },
+      };
+      const sbGetColor = (name) => {
+        if (SB_PERSON_COLORS[name]) return SB_PERSON_COLORS[name];
+        const idx = sbFriends.indexOf(name);
+        const c   = FRIEND_COLORS[idx % FRIEND_COLORS.length];
+        return { bg: c+"22", color: c };
+      };
+      const sbAllPeople = ["Gue", "Pasangan", ...sbFriends];
+      const sbTotals = (() => {
+        const t = {};
+        sbAllPeople.forEach(p => { t[p] = 0; });
+        sbItems.forEach(item => {
+          const share = item.price / item.for.length;
+          item.for.forEach(p => { t[p] = (t[p]||0) + share; });
+        });
+        return t;
+      })();
+      const sbMyTotal = (sbTotals["Gue"]||0) + (sbTotals["Pasangan"]||0);
+      const parseRp   = s => parseInt(String(s).replace(/\./g,"").replace(/\D/g,"")) || 0;
+
+      const sbAddFriend = () => {
+        const name = sbFriendInput.trim();
+        if (!name || sbFriends.includes(name)) return;
+        setSbFriends(f => [...f, name]);
+        setSbFriendInput("");
+      };
+
+      const sbAddItem = () => {
+        if (!sbItemName.trim() || !sbItemPrice || sbSelectedFor.length === 0) return;
+        const price = parseRp(sbItemPrice);
+        if (price <= 0) return;
+        setSbItems(items => [...items, { id: Date.now(), name: sbItemName.trim(), price, for: [...sbSelectedFor] }]);
+        setSbItemName("");
+        setSbItemPrice("");
+        setSbSelectedFor(["Gue"]);
+      };
+
+      const sbExportToFinance = async () => {
+        if (sbMyTotal <= 0) return;
+        const newTx = {
+          tanggal:   today(),
+          jenis:     "Pengeluaran",
+          kategori:  "Nongkrong",
+          deskripsi: "Split bill nongkrong",
+          nominal:   Math.round(sbMyTotal),
+          id:        Date.now(),
+          addedBy:   myName,
+        };
         const updated = [newTx, ...txsRef.current];
         txsRef.current = updated;
         setTransactions(updated);
         await saveTx(updated);
+        setSbExported(true);
+        showToast("Rp " + Math.round(sbMyTotal).toLocaleString("id-ID") + " dicatat ke Finance Tracker! ✅");
+      };
+
+      const sbReset = () => {
+        setSbFriends([]); setSbItems([]); setSbFriendInput("");
+        setSbItemName(""); setSbItemPrice(""); setSbSelectedFor(["Gue"]);
+        setSbPaidMap({}); setSbExported(false);
+      };
+
+      const handleSubmit = async () => {
+        const _nom = parseInt(String(form.nominal).replace(/\./g,"").replace(/\D/g,"")) || 0;
+        if (!form.nominal || _nom <= 0) { showToast("Nominal harus diisi dan valid!", "err"); return; }
+        if (!form.deskripsi.trim()) { showToast("Deskripsi harus diisi!", "err"); return; }
+        const rawNominal = parseInt(String(form.nominal).replace(/\./g,"").replace(/\D/g,"")) || 0;
+        const newTx = {...form, nominal:rawNominal, id:Date.now(), addedBy:myName};
+        const updated = [newTx, ...txsRef.current];
+        txsRef.current = updated;
+        setTransactions(updated);
+        await saveTx(updated);
+        // Kirim notifikasi ke pasangan
+        const jenisLabel = form.jenis === "Pemasukan" ? "pemasukan" : "pengeluaran";
+        sendNotif(
+          `💰 ${myName} catat ${jenisLabel}`,
+          `${form.deskripsi} — ${fmtRp(+form.nominal)}`
+        );
         setForm({ tanggal:today(), jenis:"Pengeluaran", kategori:"Makan", deskripsi:"", nominal:"" });
         showToast("Transaksi tersimpan! ✅");
         setTab("history");
@@ -549,7 +678,7 @@
                     <button className={`tog-btn ${form.jenis==="Pengeluaran"?"tog-out":""}`} onClick={()=>setForm(f=>({...f,jenis:"Pengeluaran",kategori:"Makan"}))}>⬇ Pengeluaran</button>
                   </div>
                   <div className="field-label">Nominal (Rp)</div>
-                  <input className="inp" type="number" inputMode="numeric" placeholder="0" value={form.nominal} onChange={e=>setForm(f=>({...f,nominal:e.target.value}))}/>
+                  <input className="inp" inputMode="numeric" placeholder="0" value={form.nominal} onChange={e=>{ const raw = e.target.value.replace(/\D/g,""); setForm(f=>({...f,nominal:raw ? parseInt(raw).toLocaleString("id-ID") : ""})); }}/>
                   <div className="field-label">Tanggal</div>
                   <input className="inp" type="date" value={form.tanggal} onChange={e=>setForm(f=>({...f,tanggal:e.target.value}))}/>
                   <div className="field-label">Kategori</div>
@@ -604,6 +733,141 @@
               </div>
             </>}
 
+            {/* ─── SPLIT BILL ─── */}
+            {tab==="split" && <>
+              <div className="hdr"><div><div className="hdr-title">Split Bill ✂️</div></div></div>
+              <div className="scroll">
+
+                {/* Tambah Teman */}
+                <div className="sec-title">Temen yang nitip</div>
+                <div style={{display:"flex",gap:8,marginBottom:12}}>
+                  <input className="inp" style={{margin:0,flex:1}} placeholder="Nama temen..." value={sbFriendInput}
+                    onChange={e=>setSbFriendInput(e.target.value)}
+                    onKeyDown={e=>e.key==="Enter"&&sbAddFriend()}/>
+                  <button onClick={sbAddFriend} style={{padding:"12px 16px",borderRadius:14,border:"none",background:"#7c5cfc",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Tambah</button>
+                </div>
+                <div style={{marginBottom:16}}>
+                  {sbFriends.length===0 && <div style={{fontSize:13,color:"#444",marginBottom:12}}>Belum ada temen yang ditambah</div>}
+                  {sbFriends.map(f => {
+                    const c = sbGetColor(f);
+                    return (
+                      <span key={f} style={{display:"inline-flex",alignItems:"center",gap:6,background:c.bg,border:`1px solid ${c.color}88`,borderRadius:999,padding:"5px 12px",fontSize:12,fontWeight:700,color:c.color,marginRight:6,marginBottom:6}}>
+                        {f}
+                        <button onClick={()=>setSbFriends(fr=>fr.filter(x=>x!==f))} style={{background:"none",border:"none",color:"inherit",cursor:"pointer",fontSize:14,lineHeight:1,opacity:.7}}>×</button>
+                      </span>
+                    );
+                  })}
+                </div>
+
+                {/* Tambah Item */}
+                <div className="sec-title">Tambah pesanan</div>
+                <div style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:16,marginBottom:12}}>
+                  <div className="field-label">Nama item</div>
+                  <input className="inp" placeholder="Contoh: Kopi Susu..." value={sbItemName} onChange={e=>setSbItemName(e.target.value)}/>
+                  <div className="field-label">Harga (Rp)</div>
+                  <input className="inp" inputMode="numeric" placeholder="0" value={sbItemPrice}
+                    onChange={e=>{ const raw=e.target.value.replace(/\D/g,""); setSbItemPrice(raw?parseInt(raw).toLocaleString("id-ID"):""); }}/>
+                  <div className="field-label">Untuk siapa?</div>
+                  <div style={{display:"flex",flexWrap:"wrap",marginBottom:12}}>
+                    {sbAllPeople.map(p => {
+                      const c   = sbGetColor(p);
+                      const sel = sbSelectedFor.includes(p);
+                      return (
+                        <span key={p}
+                          onClick={()=>setSbSelectedFor(s=>s.includes(p)?s.filter(x=>x!==p):[...s,p])}
+                          style={{display:"inline-flex",alignItems:"center",background:sel?c.bg:"#1e1e2e",border:`1px solid ${sel?c.color:"#2a2a3a"}`,borderRadius:999,padding:"6px 14px",fontSize:12,fontWeight:700,color:sel?c.color:"#666",marginRight:6,marginBottom:6,cursor:"pointer"}}>
+                          {p}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <button onClick={sbAddItem} style={{width:"100%",padding:13,borderRadius:14,border:"none",background:"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>
+                    + Tambah Item
+                  </button>
+                </div>
+
+                {/* Daftar Item */}
+                {sbItems.length > 0 && <>
+                  <div className="sec-title">Daftar pesanan ({sbItems.length})</div>
+                  <div style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:"4px 16px",marginBottom:12}}>
+                    {sbItems.map(item => (
+                      <div key={item.id} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 0",borderBottom:"1px solid #0d0d14"}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:14,fontWeight:600,color:"#f0f0f8"}}>{item.name}</div>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:4}}>
+                            {item.for.map(p => {
+                              const c = sbGetColor(p);
+                              return <span key={p} style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:999,background:c.bg,color:c.color}}>{p}</span>;
+                            })}
+                          </div>
+                        </div>
+                        <div style={{fontSize:14,fontWeight:700,fontFamily:"'DM Mono',monospace",color:"#f0f0f8",flexShrink:0}}>
+                          {"Rp "+item.price.toLocaleString("id-ID")}
+                        </div>
+                        <button onClick={()=>setSbItems(its=>its.filter(x=>x.id!==item.id))}
+                          style={{background:"none",border:"none",cursor:"pointer",fontSize:14,opacity:.4,padding:4}}>🗑️</button>
+                      </div>
+                    ))}
+                  </div>
+                </>}
+
+                {/* Summary */}
+                {sbItems.length > 0 && <>
+                  <div className="sec-title">Ringkasan tagihan</div>
+
+                  {/* Gue + Pasangan */}
+                  <div style={{background:"linear-gradient(135deg,#1a1040,#0e1a3a)",borderRadius:20,border:"1px solid #2a2060",padding:16,marginBottom:12}}>
+                    <div style={{fontSize:11,color:"#8888aa",textTransform:"uppercase",letterSpacing:1,fontWeight:600,marginBottom:4}}>💑 Gue &amp; Pasangan</div>
+                    <div style={{fontSize:28,fontWeight:700,fontFamily:"'DM Mono',monospace",color:"#c4a8ff",marginBottom:4}}>
+                      {"Rp "+Math.round(sbMyTotal).toLocaleString("id-ID")}
+                    </div>
+                    <div style={{fontSize:11,color:"#555",marginBottom:12}}>Total yang harus lo berdua bayar</div>
+                    <button onClick={sbExportToFinance} disabled={sbExported}
+                      style={{width:"100%",padding:13,borderRadius:14,border:"none",background:sbExported?"#1e1e2e":"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:sbExported?"#555":"white",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:sbExported?"default":"pointer"}}>
+                      {sbExported?"✅ Sudah dicatat ke Finance Tracker":"📥 Catat ke Finance Tracker"}
+                    </button>
+                  </div>
+
+                  {/* Per temen */}
+                  {sbFriends.filter(f=>sbTotals[f]>0).map(f => {
+                    const c    = sbGetColor(f);
+                    const paid = sbPaidMap[f];
+                    return (
+                      <div key={f} style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:16,marginBottom:12}}>
+                        <div style={{fontSize:11,color:c.color,textTransform:"uppercase",letterSpacing:1,fontWeight:600,marginBottom:4}}>👤 {f}</div>
+                        <div style={{fontSize:28,fontWeight:700,fontFamily:"'DM Mono',monospace",color:c.color,marginBottom:4}}>
+                          {"Rp "+Math.round(sbTotals[f]).toLocaleString("id-ID")}
+                        </div>
+                        <div style={{fontSize:11,color:"#555",marginBottom:8}}>Harus bayar ke lo</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:999,background:paid?"#0d1f0d":"#1f0d0d",border:`1px solid ${paid?"#2a4a2a":"#4a2a2a"}`,color:paid?"#4ade80":"#f87171"}}>
+                            {paid?"✅ Udah bayar":"⏳ Belum bayar"}
+                          </span>
+                          <button onClick={()=>setSbPaidMap(m=>({...m,[f]:!m[f]}))}
+                            style={{background:"none",border:"none",fontSize:12,fontWeight:700,color:paid?"#f87171":"#4ade80",cursor:"pointer",fontFamily:"inherit"}}>
+                            {paid?"Tandai belum":"Tandai lunas"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <button onClick={sbReset}
+                    style={{width:"100%",padding:13,borderRadius:14,border:"1px solid #2a2a3a",background:"#1e1e2e",color:"#888",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8}}>
+                    🔄 Reset &amp; Mulai Sesi Baru
+                  </button>
+                </>}
+
+                {sbItems.length===0 && (
+                  <div style={{textAlign:"center",padding:"32px 20px"}}>
+                    <div style={{fontSize:40,marginBottom:12}}>✂️</div>
+                    <div style={{fontSize:15,fontWeight:600,color:"#555"}}>Belum ada pesanan</div>
+                    <div style={{fontSize:13,color:"#333",marginTop:6}}>Tambahin temen &amp; pesanan dulu</div>
+                  </div>
+                )}
+              </div>
+            </>}
+
             {/* ─── IMPORT MODAL ─── */}
             {importModal && (
               <div className="modal-overlay" onClick={()=>setImportModal(null)}>
@@ -649,7 +913,7 @@
 
             {/* ─── BOTTOM NAV ─── */}
             <div className="bnav">
-              {[{id:"dashboard",icon:"📊",label:"Dashboard"},{id:"input",icon:"➕",label:"Input"},{id:"history",icon:"📜",label:"Riwayat"}].map(n=>(
+              {[{id:"dashboard",icon:"📊",label:"Dashboard"},{id:"input",icon:"➕",label:"Input"},{id:"split",icon:"✂️",label:"Split Bill"},{id:"history",icon:"📜",label:"Riwayat"}].map(n=>(
                 <button key={n.id} className={`nav-btn ${tab===n.id?"act":""}`} onClick={()=>setTab(n.id)}>
                   <div className="nav-icon">{n.icon}</div>
                   <div className="nav-label">{n.label}</div>
