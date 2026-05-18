@@ -50,7 +50,10 @@
     const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
     const fmtRp   = n => "Rp " + Math.abs(Math.round(n)).toLocaleString("id-ID");
     const today   = () => new Date().toISOString().split("T")[0];
-    const fmtDate = s => { if (!s) return ""; const [,m,d] = s.split("-"); return `${d} ${BULAN[+m-1]}`; };
+    const fmtDate    = s => { if (!s) return ""; const [,m,d] = s.split("-"); return `${d} ${BULAN[+m-1]}`; };
+    const monthLabel = key => { const [y,m] = key.split("-"); return `${BULAN[+m-1]} ${y}`; };
+    const txMonth    = t => t.tanggal.slice(0,7);
+    const THREE_MONTHS_AGO = (() => { const d=new Date(); d.setMonth(d.getMonth()-3); return d.toISOString().slice(0,7); })();
 
     // ── IndexedDB untuk simpan template binary ──
     const IDB = {
@@ -187,6 +190,14 @@ input[type=number]{-moz-appearance:textfield;}
       const [partnerName, setPartnerName]     = useState("");
       const [toast, setToast]                 = useState(null);
       const [filterJenis, setFilterJenis]     = useState("Semua");
+      const [filterMonth, setFilterMonth]     = useState("");
+      const [dashMonth, setDashMonth]         = useState(() => new Date().toISOString().slice(0,7));
+      const [search, setSearch]               = useState("");
+      const [showOld, setShowOld]             = useState(false);
+      const [filterMonth, setFilterMonth]     = useState("");
+      const [dashMonth, setDashMonth]         = useState(() => new Date().toISOString().slice(0,7));
+      const [search, setSearch]               = useState("");
+      const [showOld, setShowOld]             = useState(false);
       const [templateData, setTemplateData]   = useState(null);
       const [templateName, setTemplateName]   = useState("");
       const [exportModal, setExportModal]     = useState(false);
@@ -520,15 +531,55 @@ input[type=number]{-moz-appearance:textfield;}
         }
       };
 
-      const summary = (() => {
-        const p = transactions.filter(t=>t.jenis==="Pemasukan").reduce((s,t)=>s+t.nominal,0);
-        const q = transactions.filter(t=>t.jenis==="Pengeluaran").reduce((s,t)=>s+t.nominal,0);
+      // ── Dashboard: filter by selected month ──
+      const dashData = (() => {
+        const txs = transactions.filter(t => txMonth(t) === dashMonth);
+        const p   = txs.filter(t=>t.jenis==="Pemasukan").reduce((s,t)=>s+t.nominal,0);
+        const q   = txs.filter(t=>t.jenis==="Pengeluaran").reduce((s,t)=>s+t.nominal,0);
         const byKat = {};
-        transactions.filter(t=>t.jenis==="Pengeluaran").forEach(t=>{ byKat[t.kategori]=(byKat[t.kategori]||0)+t.nominal; });
-        return { pemasukan:p, pengeluaran:q, saldo:p-q, katSorted:Object.entries(byKat).sort((a,b)=>b[1]-a[1]) };
+        txs.filter(t=>t.jenis==="Pengeluaran").forEach(t=>{ byKat[t.kategori]=(byKat[t.kategori]||0)+t.nominal; });
+        return { txs, pemasukan:p, pengeluaran:q, saldo:p-q, katSorted:Object.entries(byKat).sort((a,b)=>b[1]-a[1]) };
       })();
 
-      const filteredTx = filterJenis==="Semua" ? transactions : transactions.filter(t=>t.jenis===filterJenis||t.kategori===filterJenis);
+      // Keep summary for backward compat (all-time, used nowhere critical)
+      const summary = dashData;
+
+      // ── History: search + filter + 3-month hide ──
+      const allMonths = [...new Set(transactions.map(txMonth))].sort().reverse();
+      const isSearching = search.trim().length > 0;
+
+      const histFiltered = (() => {
+        let result = [...transactions];
+        // Hide old unless searching or showOld
+        if (!isSearching && !showOld) result = result.filter(t => txMonth(t) >= THREE_MONTHS_AGO);
+        // Filter by month pill
+        if (filterMonth) result = result.filter(t => txMonth(t) === filterMonth);
+        // Filter by jenis/kategori
+        if (filterJenis !== "Semua") result = result.filter(t => t.jenis===filterJenis || t.kategori===filterJenis);
+        // Search across ALL transactions (override hide)
+        if (isSearching) {
+          const q = search.toLowerCase();
+          result = transactions.filter(t =>
+            t.deskripsi.toLowerCase().includes(q) ||
+            t.kategori.toLowerCase().includes(q) ||
+            (t.addedBy||"").toLowerCase().includes(q)
+          );
+        }
+        return result;
+      })();
+
+      const histGrouped = (() => {
+        const g = {};
+        histFiltered.forEach(t => { const k = txMonth(t); if (!g[k]) g[k]=[]; g[k].push(t); });
+        return Object.entries(g).sort((a,b) => b[0].localeCompare(a[0]));
+      })();
+
+      const histPemasukan   = histFiltered.filter(t=>t.jenis==="Pemasukan").reduce((s,t)=>s+t.nominal,0);
+      const histPengeluaran = histFiltered.filter(t=>t.jenis==="Pengeluaran").reduce((s,t)=>s+t.nominal,0);
+      const oldTxCount      = transactions.filter(t=>txMonth(t)<THREE_MONTHS_AGO).length;
+      const oldMonthMin     = transactions.filter(t=>txMonth(t)<THREE_MONTHS_AGO).map(txMonth).sort()[0];
+
+      const filteredTx = histFiltered; // keep compat
 
       // ── Name setup ──
       if (!nameSet) return (
@@ -604,27 +655,37 @@ input[type=number]{-moz-appearance:textfield;}
                   </div>
                 )}
 
+                {/* Month filter pills */}
+                <div style={{display:"flex",gap:8,overflowX:"auto",margin:"0 -20px",padding:"0 20px 16px",scrollbarWidth:"none"}}>
+                  {allMonths.slice(0,6).map((m,i) => (
+                    <div key={m} onClick={()=>setDashMonth(m)}
+                      style={{flexShrink:0,background:dashMonth===m?"#7c5cfc22":"#13131c",border:`1.5px solid ${dashMonth===m?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 16px",fontSize:12,fontWeight:700,color:dashMonth===m?"#c4a8ff":i===0?"#3a8eff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
+                      {i===0?"Bulan ini":monthLabel(m)}
+                    </div>
+                  ))}
+                </div>
+
                 {/* Balance */}
                 <div className="balance-card">
-                  <div className="bal-label">Saldo Bersama</div>
-                  <div className="bal-amount" style={{color:summary.saldo<0?"#f87171":"#fff"}}>{fmtRp(summary.saldo)}</div>
+                  <div className="bal-label">Saldo — {monthLabel(dashMonth)}</div>
+                  <div className="bal-amount" style={{color:dashData.saldo<0?"#f87171":"#fff"}}>{fmtRp(dashData.saldo)}</div>
                   <div className="bal-row">
                     <div className="mini-stat">
                       <div className="mini-label"><div className="mini-dot" style={{background:"#4ade80"}}/> Pemasukan</div>
-                      <div className="mini-val" style={{color:"#4ade80"}}>{fmtRp(summary.pemasukan)}</div>
+                      <div className="mini-val" style={{color:"#4ade80"}}>{fmtRp(dashData.pemasukan)}</div>
                     </div>
                     <div className="mini-stat">
                       <div className="mini-label"><div className="mini-dot" style={{background:"#f87171"}}/> Pengeluaran</div>
-                      <div className="mini-val" style={{color:"#f87171"}}>{fmtRp(summary.pengeluaran)}</div>
+                      <div className="mini-val" style={{color:"#f87171"}}>{fmtRp(dashData.pengeluaran)}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Kategori */}
-                {summary.katSorted.length > 0 && <>
-                  <div className="sec-title">Kategori terboros</div>
-                  {summary.katSorted.slice(0,5).map(([kat,val]) => {
-                    const pct = Math.round((val/summary.pengeluaran)*100);
+                {dashData.katSorted.length > 0 && <>
+                  <div className="sec-title">Kategori terboros — {monthLabel(dashMonth)}</div>
+                  {dashData.katSorted.slice(0,5).map(([kat,val]) => {
+                    const pct = Math.round((val/dashData.pengeluaran)*100);
                     return (
                       <div key={kat} className="cat-bar-wrap">
                         <div style={{fontSize:20,width:28,textAlign:"center"}}>{EMOJI[kat]}</div>
@@ -644,12 +705,12 @@ input[type=number]{-moz-appearance:textfield;}
 
                 {/* Recent */}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                  <div className="sec-title" style={{margin:0}}>Transaksi terakhir</div>
+                  <div className="sec-title" style={{margin:0}}>Transaksi — {monthLabel(dashMonth)}</div>
                   <button className="export-btn" onClick={handleExport}>📥 Export Excel</button>
                 </div>
-                {transactions.length===0
-                  ? <div className="empty"><div className="empty-icon">🧾</div><div className="empty-text">Belum ada transaksi</div><div className="empty-sub">Tap ➕ Input untuk catat yang pertama</div></div>
-                  : transactions.slice(0,5).map(t=>(
+                {dashData.txs.length===0
+                  ? <div className="empty"><div className="empty-icon">📭</div><div className="empty-text">Belum ada transaksi</div><div className="empty-sub">di {monthLabel(dashMonth)}</div></div>
+                  : dashData.txs.map(t=>(
                     <div key={t.id} className="tx-item">
                       <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
                       <div className="tx-info">
@@ -703,33 +764,109 @@ input[type=number]{-moz-appearance:textfield;}
                 <button className="export-btn" onClick={handleExport}>📥 Excel</button>
               </div>
               <div className="scroll">
+                {/* Search bar */}
+                <div style={{position:"relative",marginBottom:14}}>
+                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,opacity:.4}}>🔍</span>
+                  <input style={{width:"100%",background:"#13131c",border:"1.5px solid #1e1e2e",borderRadius:14,padding:"12px 16px 12px 40px",color:"#f0f0f8",fontFamily:"inherit",fontSize:14,outline:"none",WebkitAppearance:"none"}}
+                    placeholder="Cari transaksi, kategori, nama..."
+                    value={search} onChange={e=>setSearch(e.target.value)}/>
+                  {search && <button onClick={()=>setSearch("")}
+                    style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#555",cursor:"pointer",fontSize:20,lineHeight:1}}>×</button>}
+                </div>
+
+                {/* Month pills — hide while searching */}
+                {!isSearching && (
+                  <div style={{display:"flex",gap:8,overflowX:"auto",margin:"0 -20px",padding:"0 20px 14px",scrollbarWidth:"none"}}>
+                    <div onClick={()=>setFilterMonth("")}
+                      style={{flexShrink:0,background:filterMonth===""?"#7c5cfc22":"#13131c",border:`1px solid ${filterMonth===""?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===""?"#c4a8ff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
+                      3 bln terakhir
+                    </div>
+                    {allMonths.filter(m=>m>=THREE_MONTHS_AGO).map((m,i)=>(
+                      <div key={m} onClick={()=>setFilterMonth(m)}
+                        style={{flexShrink:0,background:filterMonth===m?"#7c5cfc22":"#13131c",border:`1px solid ${filterMonth===m?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===m?"#c4a8ff":i===0?"#3a8eff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
+                        {i===0?"Bulan ini":monthLabel(m)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Jenis filter */}
                 <div className="filter-row">
                   {["Semua","Pemasukan","Pengeluaran","Makan","Transport","Belanja","Tagihan","Nongkrong","Hiburan","Tabungan"].map(f=>(
                     <div key={f} className={`filter-pill ${filterJenis===f?"sel":""}`} onClick={()=>setFilterJenis(f)}>{f}</div>
                   ))}
                 </div>
-                <div className="sec-title">{filteredTx.length} transaksi</div>
-                {filteredTx.length===0
-                  ? <div className="empty"><div className="empty-icon">🔍</div><div className="empty-text">Tidak ada transaksi</div><div className="empty-sub">Coba filter lain</div></div>
-                  : filteredTx.map(t=>(
-                    <div key={t.id} className="tx-item">
-                      <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
-                      <div className="tx-info">
-                        <div className="tx-desc">{t.deskripsi}</div>
-                        <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
-                        <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
-                          {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
-                        </span>
+
+                {/* Summary strip */}
+                <div style={{display:"flex",gap:10,marginBottom:16}}>
+                  {[["#4ade80","Pemasukan",histPemasukan],["#f87171","Pengeluaran",histPengeluaran]].map(([c,label,val])=>(
+                    <div key={label} style={{flex:1,background:"#13131c",borderRadius:14,border:"1px solid #1e1e2e",padding:"10px 12px"}}>
+                      <div style={{fontSize:10,color:"#555",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,display:"flex",alignItems:"center",gap:4}}>
+                        <div style={{width:6,height:6,borderRadius:"50%",background:c}}/>{label}
                       </div>
-                      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-                        <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
-                          {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
+                      <div style={{fontSize:13,fontWeight:700,fontFamily:"DM Mono,monospace",color:c,marginTop:3}}>{fmtRp(val)}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Old data banner */}
+                {!isSearching && !showOld && oldTxCount > 0 && (
+                  <div onClick={()=>setShowOld(true)}
+                    style={{display:"flex",alignItems:"center",gap:10,background:"#13131c",border:"1px solid #1e1e2e",borderRadius:14,padding:"12px 14px",marginBottom:14,cursor:"pointer"}}>
+                    <span style={{fontSize:18}}>🗂️</span>
+                    <div style={{flex:1,fontSize:12,color:"#555",fontWeight:600}}>
+                      Ada {oldTxCount} transaksi tersembunyi {oldMonthMin ? `dari ${monthLabel(oldMonthMin)}` : ""}
+                    </div>
+                    <span style={{fontSize:11,color:"#7c5cfc",fontWeight:700}}>Tampilkan →</span>
+                  </div>
+                )}
+
+                {/* Search info */}
+                {isSearching && (
+                  <div style={{fontSize:12,color:"#555",marginBottom:12,fontWeight:600}}>
+                    🔍 Mencari di semua transaksi termasuk yang lama...
+                  </div>
+                )}
+
+                {/* Results grouped by month */}
+                {histFiltered.length===0
+                  ? <div className="empty"><div className="empty-icon">🔍</div><div className="empty-text">Tidak ada hasil</div><div className="empty-sub">Coba kata kunci atau filter lain</div></div>
+                  : histGrouped.map(([monthKey, txs]) => (
+                    <div key={monthKey}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#333",textTransform:"uppercase",letterSpacing:1,padding:"16px 0 8px"}}>
+                        {monthLabel(monthKey)} · {txs.length} transaksi
+                      </div>
+                      {txs.map(t=>(
+                        <div key={t.id} className="tx-item">
+                          <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
+                          <div className="tx-info">
+                            <div className="tx-desc">{t.deskripsi}</div>
+                            <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
+                            <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
+                              {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
+                            </span>
+                          </div>
+                          <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+                            <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
+                              {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
+                            </div>
+                            <button className="del-btn" onClick={()=>handleDelete(t.id)}>🗑️</button>
+                          </div>
                         </div>
-                        <button className="del-btn" onClick={()=>handleDelete(t.id)}>🗑️</button>
-                      </div>
+                      ))}
                     </div>
                   ))
                 }
+
+                {/* Hide old button */}
+                {showOld && !isSearching && (
+                  <div style={{textAlign:"center",padding:"16px 0"}}>
+                    <button onClick={()=>setShowOld(false)}
+                      style={{background:"none",border:"1px solid #1e1e2e",borderRadius:999,padding:"8px 20px",color:"#444",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                      Sembunyikan transaksi lama
+                    </button>
+                  </div>
+                )}
               </div>
             </>}
 
