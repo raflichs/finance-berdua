@@ -194,6 +194,8 @@ input[type=number]{-moz-appearance:textfield;}
       const [dashMonth, setDashMonth]         = useState(() => new Date().toISOString().slice(0,7));
       const [search, setSearch]               = useState("");
       const [showOld, setShowOld]             = useState(false);
+      const [hideBalance, setHideBalance]     = useState(false);
+      const [editTx, setEditTx]               = useState(null); // { id, tanggal, jenis, kategori, deskripsi, nominal }
       const [templateData, setTemplateData]   = useState(null);
       const [templateName, setTemplateName]   = useState("");
       const [exportModal, setExportModal]     = useState(false);
@@ -383,6 +385,21 @@ input[type=number]{-moz-appearance:textfield;}
         setSbFriends([]); setSbItems([]); setSbFriendInput("");
         setSbItemName(""); setSbItemPrice(""); setSbSelectedFor(["Gue"]);
         setSbPaidMap({}); setSbExported(false);
+      };
+
+      // ── Save edited transaction ──
+      const handleEditSave = async () => {
+        if (!editTx.nominal || !editTx.deskripsi.trim()) { showToast("Lengkapi semua field!", "err"); return; }
+        const rawNominal = parseInt(String(editTx.nominal).replace(/\./g,"").replace(/\D/g,"")) || 0;
+        if (rawNominal <= 0) { showToast("Nominal harus valid!", "err"); return; }
+        const updated = txsRef.current.map(t =>
+          t.id === editTx.id ? { ...t, ...editTx, nominal: rawNominal } : t
+        );
+        txsRef.current = updated;
+        setTransactions(updated);
+        await saveTx(updated);
+        setEditTx(null);
+        showToast("Transaksi berhasil diupdate! ✅");
       };
 
       const handleSubmit = async () => {
@@ -663,16 +680,24 @@ input[type=number]{-moz-appearance:textfield;}
 
                 {/* Balance */}
                 <div className="balance-card">
-                  <div className="bal-label">Saldo — {monthLabel(dashMonth)}</div>
-                  <div className="bal-amount" style={{color:dashData.saldo<0?"#f87171":"#fff"}}>{fmtRp(dashData.saldo)}</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+                    <div className="bal-label">Saldo — {monthLabel(dashMonth)}</div>
+                    <button onClick={()=>setHideBalance(h=>!h)}
+                      style={{background:"none",border:"none",cursor:"pointer",fontSize:16,opacity:.6,lineHeight:1,padding:"2px 4px"}}>
+                      {hideBalance?"🙈":"👁️"}
+                    </button>
+                  </div>
+                  <div className="bal-amount" style={{color:!hideBalance&&dashData.saldo<0?"#f87171":"#fff",letterSpacing:hideBalance?4:-1}}>
+                    {hideBalance?"••••••••":fmtRp(dashData.saldo)}
+                  </div>
                   <div className="bal-row">
                     <div className="mini-stat">
                       <div className="mini-label"><div className="mini-dot" style={{background:"#4ade80"}}/> Pemasukan</div>
-                      <div className="mini-val" style={{color:"#4ade80"}}>{fmtRp(dashData.pemasukan)}</div>
+                      <div className="mini-val" style={{color:"#4ade80"}}>{hideBalance?"••••":fmtRp(dashData.pemasukan)}</div>
                     </div>
                     <div className="mini-stat">
                       <div className="mini-label"><div className="mini-dot" style={{background:"#f87171"}}/> Pengeluaran</div>
-                      <div className="mini-val" style={{color:"#f87171"}}>{fmtRp(dashData.pengeluaran)}</div>
+                      <div className="mini-val" style={{color:"#f87171"}}>{hideBalance?"••••":fmtRp(dashData.pengeluaran)}</div>
                     </div>
                   </div>
                 </div>
@@ -846,7 +871,13 @@ input[type=number]{-moz-appearance:textfield;}
                             <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
                               {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
                             </div>
-                            <button className="del-btn" onClick={()=>handleDelete(t.id)}>🗑️</button>
+                            <div style={{display:"flex",gap:6}}>
+                              {t.addedBy===myName && (
+                                <button className="del-btn" title="Edit"
+                                  onClick={()=>setEditTx({...t, nominal:t.nominal.toLocaleString("id-ID")})}>✏️</button>
+                              )}
+                              <button className="del-btn" onClick={()=>handleDelete(t.id)}>🗑️</button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1002,6 +1033,59 @@ input[type=number]{-moz-appearance:textfield;}
             </>}
 
             {/* ─── IMPORT MODAL ─── */}
+            {/* ─── EDIT TRANSACTION MODAL ─── */}
+            {editTx && (
+              <div className="modal-overlay" onClick={()=>setEditTx(null)}>
+                <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
+                  <div style={{fontSize:36,marginBottom:8,textAlign:"center"}}>✏️</div>
+                  <div className="modal-title">Edit Transaksi</div>
+                  <div className="modal-sub">Hanya lo yang bisa edit transaksi ini</div>
+
+                  {/* Jenis toggle */}
+                  <div style={{display:"flex",background:"#0d0d14",borderRadius:14,padding:4,marginBottom:16,border:"1px solid #1e1e2e"}}>
+                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pemasukan"?"#0d1f0d":"none",color:editTx.jenis==="Pemasukan"?"#4ade80":"#444"}}
+                      onClick={()=>setEditTx(e=>({...e,jenis:"Pemasukan",kategori:"Gaji"}))}>⬆ Pemasukan</button>
+                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pengeluaran"?"#1f0d0d":"none",color:editTx.jenis==="Pengeluaran"?"#f87171":"#444"}}
+                      onClick={()=>setEditTx(e=>({...e,jenis:"Pengeluaran",kategori:"Makan"}))}>⬇ Pengeluaran</button>
+                  </div>
+
+                  {/* Nominal */}
+                  <div className="field-label">Nominal (Rp)</div>
+                  <input className="inp" inputMode="numeric" placeholder="0"
+                    value={editTx.nominal}
+                    onChange={e=>{ const raw=e.target.value.replace(/\D/g,""); setEditTx(t=>({...t,nominal:raw?parseInt(raw).toLocaleString("id-ID"):""})); }}/>
+
+                  {/* Tanggal */}
+                  <div className="field-label">Tanggal</div>
+                  <input className="inp" type="date" value={editTx.tanggal}
+                    onChange={e=>setEditTx(t=>({...t,tanggal:e.target.value}))}/>
+
+                  {/* Kategori */}
+                  <div className="field-label">Kategori</div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+                    {KATEGORI[editTx.jenis].map(k=>(
+                      <div key={k}
+                        onClick={()=>setEditTx(t=>({...t,kategori:k}))}
+                        style={{background:editTx.kategori===k?"#7c5cfc1a":"#0d0d14",border:`1.5px solid ${editTx.kategori===k?"#7c5cfc":"#1e1e2e"}`,borderRadius:12,padding:"10px 6px",textAlign:"center",fontSize:11,fontWeight:700,color:editTx.kategori===k?"#c4a8ff":"#666",cursor:"pointer",lineHeight:1.4}}>
+                        <div style={{fontSize:22,marginBottom:4}}>{EMOJI[k]}</div>{k}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Deskripsi */}
+                  <div className="field-label">Deskripsi</div>
+                  <input className="inp" placeholder="Deskripsi transaksi..."
+                    value={editTx.deskripsi}
+                    onChange={e=>setEditTx(t=>({...t,deskripsi:e.target.value}))}/>
+
+                  <button className="submit-btn" onClick={handleEditSave} style={{marginBottom:10}}>
+                    💾 Simpan Perubahan
+                  </button>
+                  <button className="modal-close" onClick={()=>setEditTx(null)}>Batal</button>
+                </div>
+              </div>
+            )}
+
             {importModal && (
               <div className="modal-overlay" onClick={()=>setImportModal(null)}>
                 <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
