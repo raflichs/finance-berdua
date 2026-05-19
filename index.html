@@ -54,6 +54,7 @@
     const monthLabel = key => { const [y,m] = key.split("-"); return `${BULAN[+m-1]} ${y}`; };
     const txMonth    = t => t.tanggal.slice(0,7);
     const THREE_MONTHS_AGO = (() => { const d=new Date(); d.setMonth(d.getMonth()-3); return d.toISOString().slice(0,7); })();
+    const GEMINI_API_KEY = "AIzaSyBZMc-FwSso4QFgDR60zuYuJieDWc67Q6g";
 
     // ── IndexedDB untuk simpan template binary ──
     const IDB = {
@@ -384,7 +385,6 @@ input[type=number]{-moz-appearance:textfield;}
       };
 
       // ── Scan receipt via Gemini API ──
-      const GEMINI_API_KEY = "AIzaSyBZMc-FwSso4QFgDR60zuYuJieDWc67Q6g";
       const sbScanReceipt = async (file) => {
         setSbScanning(true); setSbScanProgress(10);
         try {
@@ -971,15 +971,15 @@ input[type=number]{-moz-appearance:textfield;}
                 {/* Step indicator */}
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:20}}>
                   {["Temen","Input","Assign","Ringkasan"].map((s,i) => (
-                    <React.Fragment key={s}>
+                    <div key={s} style={{display:"flex",alignItems:"center",gap:6,flex:i<3?1:"none"}}>
                       <div style={{width:24,height:24,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0,
-                        background:i<sbStep?"#7c5cfc":i===sbStep?"#1e1e2e":"#1e1e2e",
+                        background:i<sbStep?"#7c5cfc":"#1e1e2e",
                         border:i===sbStep?"2px solid #7c5cfc":"none",
                         color:i<sbStep?"white":i===sbStep?"#c4a8ff":"#444"}}>
                         {i<sbStep?"✓":i+1}
                       </div>
                       {i<3&&<div style={{flex:1,height:2,background:i<sbStep?"#7c5cfc":"#1e1e2e",borderRadius:999}}/>}
-                    </React.Fragment>
+                    </div>
                   ))}
                 </div>
 
