@@ -16,7 +16,95 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>html,body,#root{height:100%;margin:0;padding:0;background:#0B0B12;}</style>
+  <style>
+    /* Base styles */
+    html,body,#root{height:100%;margin:0;padding:0;background:#0B0B12;}
+    
+    /* Main App Styles */
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0;}
+    ::-webkit-scrollbar{display:none;}
+    body{background:#0B0B12;}
+    .app{font-family:'DM Sans',sans-serif;background:#0B0B12;min-height:100dvh;color:#f0f0f8;max-width:430px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
+    .screen{flex:1;display:flex;flex-direction:column;}
+    .scroll{flex:1;overflow-y:auto;padding:0 20px 100px;}
+    .hdr{padding:52px 20px 12px;display:flex;justify-content:space-between;align-items:flex-start;}
+    .hdr-sub{font-size:12px;color:#555;font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
+    .hdr-title{font-size:22px;font-weight:700;color:#f0f0f8;margin-top:2px;}
+    .hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+    .badge{display:flex;align-items:center;gap:5px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;}
+    .badge-on{background:#0d1a0d;border:1px solid #2a4a2a;color:#4ade80;}
+    .badge-off{background:#1a1010;border:1px solid #4a2a2a;color:#f87171;}
+    .badge-partner{background:#1a0d2a;border:1px solid #4a2a5a;color:#c084fc;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+    .dot{width:7px;height:7px;border-radius:50%;}
+    .dot-on{background:#4ade80;animation:pulse 2s infinite;}
+    .dot-off{background:#f87171;}
+    .dot-pur{background:#c084fc;animation:pulse 2s infinite;}
+    .balance-card{margin:0 20px 20px;background:linear-gradient(135deg,#1a1040,#0e1a3a);border-radius:24px;padding:24px;border:1px solid #2a2060;position:relative;overflow:hidden;}
+    .balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.25),transparent 70%);}
+    .balance-card::after{content:'';position:absolute;bottom:-30px;left:-20px;width:110px;height:110px;background:radial-gradient(circle,rgba(58,142,255,.2),transparent 70%);}
+    .bal-label{font-size:11px;color:#8888aa;text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+    .bal-amount{font-size:34px;font-weight:700;color:#fff;margin:6px 0 20px;font-family:'DM Mono',monospace;letter-spacing:-1px;}
+    .bal-row{display:flex;gap:10px;}
+    .mini-stat{flex:1;background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;}
+    .mini-label{font-size:10px;color:#8888aa;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:4px;}
+    .mini-dot{width:6px;height:6px;border-radius:50%;}
+    .mini-val{font-size:14px;font-weight:700;margin-top:4px;font-family:'DM Mono',monospace;}
+    .sec-title{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+    .cat-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .cat-bar-bg{flex:1;background:#1e1e2e;border-radius:999px;height:5px;}
+    .cat-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#7c5cfc,#3a8eff);}
+    .tx-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #13131c;}
+    .tx-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .tx-info{flex:1;min-width:0;}
+    .tx-desc{font-size:14px;font-weight:600;color:#f0f0f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .tx-meta{font-size:11px;color:#555;margin-top:2px;}
+    .who-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-block;margin-top:3px;}
+    .tx-amount{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0;}
+    .del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.35;padding:4px;line-height:1;}
+    .form-card{background:#13131c;border-radius:24px;border:1px solid #1e1e2e;padding:20px;}
+    .toggle-row{display:flex;background:#0d0d14;border-radius:14px;padding:4px;margin-bottom:20px;border:1px solid #1e1e2e;}
+    .tog-btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:none;color:#444;}
+    .tog-in{background:#0d1f0d!important;color:#4ade80!important;}
+    .tog-out{background:#1f0d0d!important;color:#f87171!important;}
+    .field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:8px;}
+    .inp{width:100%;background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:14px;padding:13px 16px;color:#f0f0f8;font-family:inherit;font-size:15px;outline:none;margin-bottom:14px;transition:border-color .2s;-webkit-appearance:none;}
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+    input[type=number]{-moz-appearance:textfield;}
+    .inp:focus{border-color:#7c5cfc;}
+    .inp::placeholder{color:#444;}
+    .kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+    .kat-item{background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:12px;padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:#666;cursor:pointer;line-height:1.4;}
+    .kat-item.sel{border-color:#7c5cfc;background:#7c5cfc1a;color:#c4a8ff;}
+    .submit-btn{width:100%;padding:15px;border-radius:16px;border:none;background:linear-gradient(135deg,#7c5cfc,#3a8eff);color:white;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+    .submit-btn:disabled{opacity:.4;cursor:not-allowed;}
+    .filter-row{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 12px;scrollbar-width:none;}
+    .filter-pill{flex-shrink:0;background:#16161f;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;color:#666;cursor:pointer;white-space:nowrap;}
+    .filter-pill.sel{background:#7c5cfc22;border-color:#7c5cfc;color:#c4a8ff;}
+    .export-btn{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-family:inherit;font-size:11px;font-weight:700;color:#888;cursor:pointer;display:flex;align-items:center;gap:5px;}
+    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e1e2e;border:1px solid #3a3a5a;border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#f0f0f8;z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .25s ease;}
+    .toast.err{background:#1f0d0d;border-color:#5a2a2a;color:#f87171;}
+    @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+    .sync-bar{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c5cfc,#3a8eff,#7c5cfc);background-size:200%;animation:syncAnim 1.5s linear infinite;z-index:9999;}
+    @keyframes syncAnim{0%{background-position:0%}100%{background-position:200%;}}
+    .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:80px;background:#0d0d14ee;border-top:1px solid #1e1e2e;display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;backdrop-filter:blur(24px);}
+    .nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 20px;border-radius:16px;cursor:pointer;border:none;background:none;}
+    .nav-btn.act{background:#1e1e2e;}
+    .nav-icon{font-size:22px;line-height:1;}
+    .nav-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#444;}
+    .nav-btn.act .nav-label{color:#c4a8ff;}
+    .empty{text-align:center;padding:48px 20px;}
+    .empty-icon{font-size:48px;margin-bottom:12px;}
+    .empty-text{font-size:15px;font-weight:600;color:#555;}
+    .empty-sub{font-size:13px;margin-top:6px;color:#333;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+    .modal-sheet{background:#13131c;border-radius:28px 28px 0 0;border:1px solid #2a2a3a;padding:28px 24px 40px;width:100%;max-width:430px;animation:slideUp .3s ease;}
+    @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+    .modal-title{font-size:18px;font-weight:700;color:#f0f0f8;margin-bottom:6px;text-align:center;}
+    .modal-sub{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5;text-align:center;}
+    .modal-close{width:100%;padding:13px;border-radius:16px;border:1px solid #2a2a3a;background:#1e1e2e;color:#888;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;}
+  </style>
 </head>
 <body>
   <div id="root"></div>
@@ -34,7 +122,7 @@
     const db = firebase.database();
   </script>
 
-  <script type="text/babel">
+  <script type="text/babel" data-presets="react,env">
     const { useState, useEffect, useRef } = React;
 
     const DB_PATH = "finance_berdua";
@@ -54,6 +142,7 @@
     const monthLabel = key => { const [y,m] = key.split("-"); return `${BULAN[+m-1]} ${y}`; };
     const txMonth    = t => t.tanggal.slice(0,7);
     const THREE_MONTHS_AGO = (() => { const d=new Date(); d.setMonth(d.getMonth()-3); return d.toISOString().slice(0,7); })();
+    const GEMINI_API_KEY = "AIzaSyBZMc-FwSso4QFgDR60zuYuJieDWc67Q6g";
 
     // ── IndexedDB untuk simpan template binary ──
     const IDB = {
@@ -64,7 +153,10 @@
         r.onerror   = () => rej();
       }),
       save: async (name, buffer) => {
-        try { const d = await IDB.open(); d.transaction("tpl","readwrite").objectStore("tpl").put({name,buffer},"k"); } catch {}
+        try { 
+            const d = await IDB.open(); 
+            d.transaction("tpl","readwrite").objectStore("tpl").put({name,buffer},"k"); 
+        } catch (err) {}
       },
       load: async () => {
         try {
@@ -74,7 +166,7 @@
             r.onsuccess = () => res(r.result||null);
             r.onerror   = () => rej(null);
           });
-        } catch { return null; }
+        } catch (err) { return null; }
       },
     };
 
@@ -107,77 +199,6 @@
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     };
 
-    const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}::-webkit-scrollbar{display:none;}body{background:#0B0B12;}
-.app{font-family:'DM Sans',sans-serif;background:#0B0B12;min-height:100dvh;color:#f0f0f8;max-width:430px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
-.screen{flex:1;display:flex;flex-direction:column;}.scroll{flex:1;overflow-y:auto;padding:0 20px 100px;}
-.hdr{padding:52px 20px 12px;display:flex;justify-content:space-between;align-items:flex-start;}
-.hdr-sub{font-size:12px;color:#555;font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
-.hdr-title{font-size:22px;font-weight:700;color:#f0f0f8;margin-top:2px;}
-.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
-.badge{display:flex;align-items:center;gap:5px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;}
-.badge-on{background:#0d1a0d;border:1px solid #2a4a2a;color:#4ade80;}
-.badge-off{background:#1a1010;border:1px solid #4a2a2a;color:#f87171;}
-.badge-partner{background:#1a0d2a;border:1px solid #4a2a5a;color:#c084fc;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
-.dot{width:7px;height:7px;border-radius:50%;}.dot-on{background:#4ade80;animation:pulse 2s infinite;}
-.dot-off{background:#f87171;}.dot-pur{background:#c084fc;animation:pulse 2s infinite;}
-.balance-card{margin:0 20px 20px;background:linear-gradient(135deg,#1a1040,#0e1a3a);border-radius:24px;padding:24px;border:1px solid #2a2060;position:relative;overflow:hidden;}
-.balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.25),transparent 70%);}
-.balance-card::after{content:'';position:absolute;bottom:-30px;left:-20px;width:110px;height:110px;background:radial-gradient(circle,rgba(58,142,255,.2),transparent 70%);}
-.bal-label{font-size:11px;color:#8888aa;text-transform:uppercase;letter-spacing:1px;font-weight:600;}
-.bal-amount{font-size:34px;font-weight:700;color:#fff;margin:6px 0 20px;font-family:'DM Mono',monospace;letter-spacing:-1px;}
-.bal-row{display:flex;gap:10px;}.mini-stat{flex:1;background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;}
-.mini-label{font-size:10px;color:#8888aa;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:4px;}
-.mini-dot{width:6px;height:6px;border-radius:50%;}.mini-val{font-size:14px;font-weight:700;margin-top:4px;font-family:'DM Mono',monospace;}
-.sec-title{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
-.cat-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.cat-bar-bg{flex:1;background:#1e1e2e;border-radius:999px;height:5px;}
-.cat-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#7c5cfc,#3a8eff);}
-.tx-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #13131c;}
-.tx-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.tx-info{flex:1;min-width:0;}.tx-desc{font-size:14px;font-weight:600;color:#f0f0f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tx-meta{font-size:11px;color:#555;margin-top:2px;}.who-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-block;margin-top:3px;}
-.tx-amount{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0;}
-.del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.35;padding:4px;line-height:1;}
-.form-card{background:#13131c;border-radius:24px;border:1px solid #1e1e2e;padding:20px;}
-.toggle-row{display:flex;background:#0d0d14;border-radius:14px;padding:4px;margin-bottom:20px;border:1px solid #1e1e2e;}
-.tog-btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:none;color:#444;}
-.tog-in{background:#0d1f0d!important;color:#4ade80!important;}.tog-out{background:#1f0d0d!important;color:#f87171!important;}
-.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:8px;}
-.inp{width:100%;background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:14px;padding:13px 16px;color:#f0f0f8;font-family:inherit;font-size:15px;outline:none;margin-bottom:14px;transition:border-color .2s;-webkit-appearance:none;}
-input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
-input[type=number]{-moz-appearance:textfield;}
-.inp:focus{border-color:#7c5cfc;}.inp::placeholder{color:#444;}
-.kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.kat-item{background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:12px;padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:#666;cursor:pointer;line-height:1.4;}
-.kat-item.sel{border-color:#7c5cfc;background:#7c5cfc1a;color:#c4a8ff;}
-.submit-btn{width:100%;padding:15px;border-radius:16px;border:none;background:linear-gradient(135deg,#7c5cfc,#3a8eff);color:white;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
-.submit-btn:disabled{opacity:.4;cursor:not-allowed;}
-.filter-row{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 12px;scrollbar-width:none;}
-.filter-pill{flex-shrink:0;background:#16161f;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;color:#666;cursor:pointer;white-space:nowrap;}
-.filter-pill.sel{background:#7c5cfc22;border-color:#7c5cfc;color:#c4a8ff;}
-.export-btn{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-family:inherit;font-size:11px;font-weight:700;color:#888;cursor:pointer;display:flex;align-items:center;gap:5px;}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e1e2e;border:1px solid #3a3a5a;border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#f0f0f8;z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .25s ease;}
-.toast.err{background:#1f0d0d;border-color:#5a2a2a;color:#f87171;}
-@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
-.sync-bar{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c5cfc,#3a8eff,#7c5cfc);background-size:200%;animation:syncAnim 1.5s linear infinite;z-index:9999;}
-@keyframes syncAnim{0%{background-position:0%}100%{background-position:200%;}}
-.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:80px;background:#0d0d14ee;border-top:1px solid #1e1e2e;display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;backdrop-filter:blur(24px);}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 20px;border-radius:16px;cursor:pointer;border:none;background:none;}
-.nav-btn.act{background:#1e1e2e;}.nav-icon{font-size:22px;line-height:1;}
-.nav-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#444;}.nav-btn.act .nav-label{color:#c4a8ff;}
-.empty{text-align:center;padding:48px 20px;}.empty-icon{font-size:48px;margin-bottom:12px;}
-.empty-text{font-size:15px;font-weight:600;color:#555;}.empty-sub{font-size:13px;margin-top:6px;color:#333;}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
-.modal-sheet{background:#13131c;border-radius:28px 28px 0 0;border:1px solid #2a2a3a;padding:28px 24px 40px;width:100%;max-width:430px;animation:slideUp .3s ease;}
-@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-.modal-title{font-size:18px;font-weight:700;color:#f0f0f8;margin-bottom:6px;text-align:center;}
-.modal-sub{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5;text-align:center;}
-.modal-close{width:100%;padding:13px;border-radius:16px;border:1px solid #2a2a3a;background:#1e1e2e;color:#888;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;}
-`;
-
     function App() {
       const [tab, setTab]                     = useState("dashboard");
       const [transactions, setTransactions]   = useState([]);
@@ -195,7 +216,7 @@ input[type=number]{-moz-appearance:textfield;}
       const [search, setSearch]               = useState("");
       const [showOld, setShowOld]             = useState(false);
       const [hideBalance, setHideBalance]     = useState(false);
-      const [editTx, setEditTx]               = useState(null); // { id, tanggal, jenis, kategori, deskripsi, nominal }
+      const [editTx, setEditTx]               = useState(null);
       const [templateData, setTemplateData]   = useState(null);
       const [templateName, setTemplateName]   = useState("");
       const [exportModal, setExportModal]     = useState(false);
@@ -203,14 +224,20 @@ input[type=number]{-moz-appearance:textfield;}
       const [form, setForm] = useState({ tanggal:today(), jenis:"Pengeluaran", kategori:"Makan", deskripsi:"", nominal:"" });
 
       // ── Split Bill State ──
+      const [sbStep, setSbStep]           = useState(0);
+      const [sbInputMode, setSbInputMode] = useState(null);
       const [sbFriends, setSbFriends]     = useState([]);
       const [sbItems, setSbItems]         = useState([]);
+      const [sbAssigned, setSbAssigned]   = useState({});
       const [sbFriendInput, setSbFriendInput] = useState("");
       const [sbItemName, setSbItemName]   = useState("");
       const [sbItemPrice, setSbItemPrice] = useState("");
       const [sbSelectedFor, setSbSelectedFor] = useState(["Gue"]);
       const [sbPaidMap, setSbPaidMap]     = useState({});
       const [sbExported, setSbExported]   = useState(false);
+      const [sbScanning, setSbScanning]   = useState(false);
+      const [sbScanProgress, setSbScanProgress] = useState(0);
+      const sbFileRef = useRef(null);
 
       const nameRef    = useRef("");
       const writingRef = useRef(false);
@@ -221,55 +248,39 @@ input[type=number]{-moz-appearance:textfield;}
         setTimeout(() => setToast(null), 2800);
       };
 
-      // Load template dari IndexedDB saat buka app
       useEffect(() => {
         IDB.load().then(saved => {
           if (saved) { setTemplateData(saved.buffer); setTemplateName(saved.name); }
         });
       }, []);
 
-      // ── Minta izin notifikasi & setup listener ──
       const setupNotif = async (name) => {
         if (!("Notification" in window)) return;
         try {
           const perm = await Notification.requestPermission();
           if (perm !== "granted") return;
-
-          // Listen ke notif yang ditujukan ke user ini di Firebase
           db.ref(`finance_berdua/notifs/${name}`).on("child_added", snap => {
             const n = snap.val();
             if (!n) return;
-            // Tampilkan notifikasi browser
             if (document.visibilityState === "hidden" || document.visibilityState === "visible") {
-              new Notification(n.title, {
-                body: n.body,
-                icon: "/icon-192.png",
-                badge: "/icon-192.png",
-                vibrate: [200, 100, 200],
-              });
+              new Notification(n.title, { body: n.body, icon: "/icon-192.png", badge: "/icon-192.png", vibrate: [200, 100, 200] });
             }
-            // Hapus notif dari DB setelah ditampilkan
             snap.ref.remove();
           });
-        } catch(e) { console.log("Notif setup failed:", e); }
+        } catch(err) { console.log("Notif setup failed:", err); }
       };
 
-      // ── Kirim notifikasi ke user lain via Firebase DB ──
       const sendNotif = async (title, body) => {
         try {
-          // Ambil semua nama user kecuali sendiri
           const snap = await db.ref("finance_berdua/heartbeats").get();
           const users = snap.val() || {};
           const others = Object.keys(users).filter(n => n !== nameRef.current);
           if (others.length === 0) return;
           const now = Date.now();
-          await Promise.all(others.map(name =>
-            db.ref(`finance_berdua/notifs/${name}`).push({ title, body, ts: now })
-          ));
-        } catch(e) { console.log("Send notif failed:", e); }
+          await Promise.all(others.map(name => db.ref(`finance_berdua/notifs/${name}`).push({ title, body, ts: now }) ));
+        } catch(err) { console.log("Send notif failed:", err); }
       };
 
-      // Firebase listener
       useEffect(() => {
         if (!nameSet) return;
         nameRef.current = myName;
@@ -285,7 +296,7 @@ input[type=number]{-moz-appearance:textfield;}
           setOnline(true);
         }, () => setOnline(false));
 
-        const sendHB = () => db.ref(`${DB_PATH}/heartbeats/${myName}`).set(Date.now()).catch(()=>{});
+        const sendHB = () => db.ref(`${DB_PATH}/heartbeats/${myName}`).set(Date.now()).catch(err=>{});
         sendHB();
         const hbInt = setInterval(sendHB, 5000);
 
@@ -306,7 +317,6 @@ input[type=number]{-moz-appearance:textfield;}
         };
       }, [nameSet, myName]);
 
-      // Save ke Firebase
       const saveTx = async list => {
         writingRef.current = true;
         setSyncing(true);
@@ -315,17 +325,13 @@ input[type=number]{-moz-appearance:textfield;}
           list.forEach(t => { obj[t.id] = t; });
           await db.ref(`${DB_PATH}/transactions`).set(obj);
           setOnline(true);
-        } catch { setOnline(false); showToast("Gagal sync, cek koneksi!", "err"); }
+        } catch (err) { setOnline(false); showToast("Gagal sync, cek koneksi!", "err"); }
         setSyncing(false);
         writingRef.current = false;
       };
 
-      // ── Split Bill Helpers ──
       const FRIEND_COLORS = ["#f59e0b","#4ade80","#f87171","#38bdf8","#fb923c"];
-      const SB_PERSON_COLORS = {
-        "Gue":      { bg:"#1e1e3a", color:"#8888ff" },
-        "Pasangan": { bg:"#1a0d2a", color:"#c084fc" },
-      };
+      const SB_PERSON_COLORS = { "Gue": { bg:"#1e1e3a", color:"#8888ff" }, "Pasangan": { bg:"#1a0d2a", color:"#c084fc" } };
       const sbGetColor = (name) => {
         if (SB_PERSON_COLORS[name]) return SB_PERSON_COLORS[name];
         const idx = sbFriends.indexOf(name);
@@ -333,17 +339,29 @@ input[type=number]{-moz-appearance:textfield;}
         return { bg: c+"22", color: c };
       };
       const sbAllPeople = ["Gue", "Pasangan", ...sbFriends];
+
       const sbTotals = (() => {
         const t = {};
         sbAllPeople.forEach(p => { t[p] = 0; });
         sbItems.forEach(item => {
-          const share = item.price / item.for.length;
-          item.for.forEach(p => { t[p] = (t[p]||0) + share; });
+          const assignees = sbInputMode === "scan" ? (sbAssigned[item.id] || []) : (item.for || []);
+          if (assignees.length === 0) return;
+          const share = item.price / assignees.length;
+          assignees.forEach(p => { t[p] = (t[p]||0) + share; });
         });
         return t;
       })();
-      const sbMyTotal = (sbTotals["Gue"]||0) + (sbTotals["Pasangan"]||0);
-      const parseRp   = s => parseInt(String(s).replace(/\./g,"").replace(/\D/g,"")) || 0;
+      const sbMyTotal    = (sbTotals["Gue"]||0) + (sbTotals["Pasangan"]||0);
+      const parseRp      = s => parseInt(String(s).replace(/\./g,"").replace(/\D/g,"")) || 0;
+      const sbUnassigned = sbInputMode === "scan" ? sbItems.filter(item => (sbAssigned[item.id]||[]).length === 0).length : 0;
+
+      const sbToggleAssign = (itemId, name) => {
+        setSbAssigned(prev => {
+          const curr = prev[itemId] || [];
+          const next = curr.includes(name) ? curr.filter(x=>x!==name) : [...curr, name];
+          return { ...prev, [itemId]: next };
+        });
+      };
 
       const sbAddFriend = () => {
         const name = sbFriendInput.trim();
@@ -357,44 +375,82 @@ input[type=number]{-moz-appearance:textfield;}
         const price = parseRp(sbItemPrice);
         if (price <= 0) return;
         setSbItems(items => [...items, { id: Date.now(), name: sbItemName.trim(), price, for: [...sbSelectedFor] }]);
-        setSbItemName("");
-        setSbItemPrice("");
-        setSbSelectedFor(["Gue"]);
+        setSbItemName(""); setSbItemPrice(""); setSbSelectedFor(["Gue"]);
+      };
+
+      const sbScanReceipt = async (file) => {
+        setSbScanning(true); setSbScanProgress(10);
+        try {
+          const base64 = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload = e => res(e.target.result.split(",")[1]);
+            reader.onerror = rej;
+            reader.readAsDataURL(file);
+          });
+          setSbScanProgress(35);
+          const mediaType = file.type || "image/jpeg";
+
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [
+                    { inline_data: { mime_type: mediaType, data: base64 } },
+                    { text: "Baca struk/nota ini dan ekstrak semua item beserta harganya. Balas HANYA dengan JSON array seperti ini, tanpa teks lain, tanpa markdown: [{"name": "nama item", "price": 12000}, ...]. Gunakan harga satuan (bukan subtotal). Jika ada qty lebih dari 1, sertakan di nama item." }
+                  ]
+                }],
+                generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
+              }),
+            }
+          );
+          setSbScanProgress(80);
+          const data = await response.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+          const clean = text.replace(/```json|```/g,"").trim();
+          const items = JSON.parse(clean);
+          const parsed = items
+            .filter(i => i.name && Number(i.price) > 0)
+            .map(i => ({ id: Date.now() + Math.random(), name: String(i.name), price: Number(i.price) }));
+          if (parsed.length === 0) throw new Error("No items detected");
+          setSbItems(parsed);
+          setSbScanProgress(100);
+          setTimeout(() => { setSbScanning(false); setSbStep(2); }, 400);
+          showToast(`${parsed.length} item berhasil dibaca! ✅`);
+        } catch(err) {
+          console.error(err);
+          setSbScanning(false); setSbScanProgress(0);
+          showToast("Gagal baca struk, coba foto ulang!", "err");
+        }
       };
 
       const sbExportToFinance = async () => {
         if (sbMyTotal <= 0) return;
         const newTx = {
-          tanggal:   today(),
-          jenis:     "Pengeluaran",
-          kategori:  "Nongkrong",
-          deskripsi: "Split bill nongkrong",
-          nominal:   Math.round(sbMyTotal),
-          id:        Date.now(),
-          addedBy:   myName,
+          tanggal: today(), jenis: "Pengeluaran", kategori: "Nongkrong",
+          deskripsi: "Split bill nongkrong", nominal: Math.round(sbMyTotal),
+          id: Date.now(), addedBy: myName,
         };
         const updated = [newTx, ...txsRef.current];
-        txsRef.current = updated;
-        setTransactions(updated);
-        await saveTx(updated);
-        setSbExported(true);
-        showToast("Rp " + Math.round(sbMyTotal).toLocaleString("id-ID") + " dicatat ke Finance Tracker! ✅");
+        txsRef.current = updated; setTransactions(updated);
+        await saveTx(updated); setSbExported(true);
+        showToast("Rp " + Math.round(sbMyTotal).toLocaleString("id-ID") + " dicatat! ✅");
       };
 
       const sbReset = () => {
-        setSbFriends([]); setSbItems([]); setSbFriendInput("");
-        setSbItemName(""); setSbItemPrice(""); setSbSelectedFor(["Gue"]);
-        setSbPaidMap({}); setSbExported(false);
+        setSbStep(0); setSbInputMode(null); setSbFriends([]); setSbItems([]);
+        setSbAssigned({}); setSbFriendInput(""); setSbItemName(""); setSbItemPrice("");
+        setSbSelectedFor(["Gue"]); setSbPaidMap({}); setSbExported(false);
+        setSbScanning(false); setSbScanProgress(0);
       };
 
-      // ── Save edited transaction ──
       const handleEditSave = async () => {
         if (!editTx.nominal || !editTx.deskripsi.trim()) { showToast("Lengkapi semua field!", "err"); return; }
         const rawNominal = parseInt(String(editTx.nominal).replace(/\./g,"").replace(/\D/g,"")) || 0;
         if (rawNominal <= 0) { showToast("Nominal harus valid!", "err"); return; }
-        const updated = txsRef.current.map(t =>
-          t.id === editTx.id ? { ...t, ...editTx, nominal: rawNominal } : t
-        );
+        const updated = txsRef.current.map(t => t.id === editTx.id ? { ...t, ...editTx, nominal: rawNominal } : t );
         txsRef.current = updated;
         setTransactions(updated);
         await saveTx(updated);
@@ -412,12 +468,8 @@ input[type=number]{-moz-appearance:textfield;}
         txsRef.current = updated;
         setTransactions(updated);
         await saveTx(updated);
-        // Kirim notifikasi ke pasangan
         const jenisLabel = form.jenis === "Pemasukan" ? "pemasukan" : "pengeluaran";
-        sendNotif(
-          `💰 ${myName} catat ${jenisLabel}`,
-          `${form.deskripsi} — ${fmtRp(+form.nominal)}`
-        );
+        sendNotif(`💰 ${myName} catat ${jenisLabel}`, `${form.deskripsi} — ${fmtRp(+form.nominal)}`);
         setForm({ tanggal:today(), jenis:"Pengeluaran", kategori:"Makan", deskripsi:"", nominal:"" });
         showToast("Transaksi tersimpan! ✅");
         setTab("history");
@@ -431,7 +483,6 @@ input[type=number]{-moz-appearance:textfield;}
         showToast("Transaksi dihapus 🗑️", "err");
       };
 
-      // Upload template + parse data lama
       const handleTemplateUpload = e => {
         const file = e.target.files[0];
         if (!file) return;
@@ -443,7 +494,7 @@ input[type=number]{-moz-appearance:textfield;}
           IDB.save(file.name, buffer);
 
           try {
-            const wb     = XLSX.read(new Uint8Array(buffer), { type:"array" });
+            const wb = XLSX.read(new Uint8Array(buffer), { type:"array" });
             const parsed = [];
             BULAN.forEach(bulan => {
               if (!wb.SheetNames.includes(bulan)) return;
@@ -489,14 +540,13 @@ input[type=number]{-moz-appearance:textfield;}
         showToast(`${txs.length} transaksi berhasil diimport! ✅`);
       };
 
-      // Export ke Excel — fix: append a ke DOM biar iOS Safari bisa download
       const handleExport = () => {
         if (!templateData) { showToast("Upload dulu file Excel lo di dashboard!", "err"); return; }
         try {
           const wb = XLSX.read(new Uint8Array(templateData), { type:"array" });
           const byMonth = {};
           [...transactions]
-            .sort((a,b) => new Date(a.tanggal)-new Date(b.tanggal))
+            .sort((a,b) => a.tanggal.localeCompare(b.tanggal)) // PENTING: Fix buat iOS Safari lama biar gak NaN
             .forEach(t => {
               const key = BULAN[+t.tanggal.split("-")[1]-1];
               if (!byMonth[key]) byMonth[key] = [];
@@ -507,13 +557,11 @@ input[type=number]{-moz-appearance:textfield;}
             if (!wb.SheetNames.includes(bulan)) return;
             const ws    = wb.Sheets[bulan];
             const range = XLSX.utils.decode_range(ws["!ref"] || "A1:I200");
-            // Hapus data lama (baris 2 ke bawah, col A-F)
             for (let r = 1; r <= range.e.r; r++)
               for (let c = 0; c <= 5; c++) {
                 const ref = XLSX.utils.encode_cell({r,c});
                 if (ws[ref]) delete ws[ref];
               }
-            // Tulis data baru
             let saldo = 0;
             txs.forEach((t, i) => {
               const row = i + 1;
@@ -544,7 +592,6 @@ input[type=number]{-moz-appearance:textfield;}
         }
       };
 
-      // ── Dashboard: filter by selected month ──
       const dashData = (() => {
         const txs = transactions.filter(t => txMonth(t) === dashMonth);
         const p   = txs.filter(t=>t.jenis==="Pemasukan").reduce((s,t)=>s+t.nominal,0);
@@ -554,22 +601,14 @@ input[type=number]{-moz-appearance:textfield;}
         return { txs, pemasukan:p, pengeluaran:q, saldo:p-q, katSorted:Object.entries(byKat).sort((a,b)=>b[1]-a[1]) };
       })();
 
-      // Keep summary for backward compat (all-time, used nowhere critical)
-      const summary = dashData;
-
-      // ── History: search + filter + 3-month hide ──
       const allMonths = [...new Set(transactions.map(txMonth))].sort().reverse();
       const isSearching = search.trim().length > 0;
 
       const histFiltered = (() => {
         let result = [...transactions];
-        // Hide old unless searching or showOld
         if (!isSearching && !showOld) result = result.filter(t => txMonth(t) >= THREE_MONTHS_AGO);
-        // Filter by month pill
         if (filterMonth) result = result.filter(t => txMonth(t) === filterMonth);
-        // Filter by jenis/kategori
         if (filterJenis !== "Semua") result = result.filter(t => t.jenis===filterJenis || t.kategori===filterJenis);
-        // Search across ALL transactions (override hide)
         if (isSearching) {
           const q = search.toLowerCase();
           result = transactions.filter(t =>
@@ -592,12 +631,8 @@ input[type=number]{-moz-appearance:textfield;}
       const oldTxCount      = transactions.filter(t=>txMonth(t)<THREE_MONTHS_AGO).length;
       const oldMonthMin     = transactions.filter(t=>txMonth(t)<THREE_MONTHS_AGO).map(txMonth).sort()[0];
 
-      const filteredTx = histFiltered; // keep compat
-
-      // ── Name setup ──
       if (!nameSet) return (
         <div style={{fontFamily:"'DM Sans',sans-serif",background:"#0B0B12",minHeight:"100dvh",color:"#f0f0f8",maxWidth:430,margin:"0 auto",display:"flex",flexDirection:"column",justifyContent:"center",padding:"40px 24px"}}>
-          <style>{CSS}</style>
           <div style={{textAlign:"center",marginBottom:32}}>
             <div style={{fontSize:52,marginBottom:14}}>💑</div>
             <div style={{fontSize:24,fontWeight:700}}>Finance Berdua</div>
@@ -609,541 +644,4 @@ input[type=number]{-moz-appearance:textfield;}
               onChange={e=>setNameInput(e.target.value)}
               onKeyDown={e=>{ if(e.key==="Enter"&&nameInput.trim()){ setMyName(nameInput.trim()); setNameSet(true); }}}
               autoFocus/>
-            <button className="submit-btn" disabled={!nameInput.trim()} onClick={()=>{ setMyName(nameInput.trim()); setNameSet(true); }}>
-              Masuk 🚀
-            </button>
-            <div style={{fontSize:12,color:"#333",textAlign:"center",marginTop:14,lineHeight:1.6}}>
-              💡 Buka link yang sama di HP pasangan lo<br/>data otomatis ke-share & real-time
-            </div>
-          </div>
-        </div>
-      );
-
-      const jenisKat = KATEGORI[form.jenis];
-
-      return (
-        <div className="app">
-          <style>{CSS}</style>
-          {syncing && <div className="sync-bar"/>}
-          {toast && <div className={`toast ${toast.type==="err"?"err":""}`}>{toast.msg}</div>}
-
-          <div className="screen">
-
-            {/* ─── DASHBOARD ─── */}
-            {tab==="dashboard" && <>
-              <div className="hdr">
-                <div>
-                  <div className="hdr-sub">Finance Berdua 💑</div>
-                  <div className="hdr-title">Halo, {myName}!</div>
-                </div>
-                <div className="hdr-right">
-                  <div className={`badge ${online?"badge-on":"badge-off"}`}>
-                    <div className={`dot ${online?"dot-on":"dot-off"}`}/>
-                    {online?"Tersync":"Offline"}
-                  </div>
-                  {partnerOnline && <div className="badge badge-partner"><div className="dot dot-pur"/>{partnerName} online</div>}
-                </div>
-              </div>
-              <div className="scroll">
-                {/* Template card */}
-                {!templateData ? (
-                  <label style={{display:"flex",alignItems:"center",gap:12,background:"#13131c",border:"1.5px dashed #2a2a3a",borderRadius:20,padding:"14px 18px",marginBottom:16,cursor:"pointer"}}>
-                    <div style={{fontSize:28}}>📂</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:13,fontWeight:700,color:"#888"}}>Upload template Excel lo</div>
-                      <div style={{fontSize:11,color:"#444",marginTop:2}}>Tap → pilih Finance_Tracker_Pro.xlsx</div>
-                    </div>
-                    <input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
-                  </label>
-                ) : (
-                  <div style={{display:"flex",alignItems:"center",gap:10,background:"#0d1f0d",border:"1px solid #2a4a2a",borderRadius:16,padding:"10px 16px",marginBottom:16}}>
-                    <div style={{fontSize:20}}>✅</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:12,fontWeight:700,color:"#4ade80"}}>{templateName}</div>
-                      <div style={{fontSize:10,color:"#555",marginTop:1}}>Template siap dipakai</div>
-                    </div>
-                    <label style={{cursor:"pointer",fontSize:11,color:"#888",fontWeight:700,padding:"4px 10px",background:"#1e1e2e",borderRadius:999,border:"1px solid #2a2a3a",flexShrink:0}}>
-                      Ganti<input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
-                    </label>
-                  </div>
-                )}
-
-                {/* Month filter pills */}
-                <div style={{display:"flex",gap:8,overflowX:"auto",margin:"0 -20px",padding:"0 20px 16px",scrollbarWidth:"none"}}>
-                  {allMonths.slice(0,6).map((m,i) => (
-                    <div key={m} onClick={()=>setDashMonth(m)}
-                      style={{flexShrink:0,background:dashMonth===m?"#7c5cfc22":"#13131c",border:`1.5px solid ${dashMonth===m?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 16px",fontSize:12,fontWeight:700,color:dashMonth===m?"#c4a8ff":i===0?"#3a8eff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
-                      {i===0?"Bulan ini":monthLabel(m)}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Balance */}
-                <div className="balance-card">
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
-                    <div className="bal-label">Saldo — {monthLabel(dashMonth)}</div>
-                    <button onClick={()=>setHideBalance(h=>!h)}
-                      style={{background:"none",border:"none",cursor:"pointer",fontSize:16,opacity:.6,lineHeight:1,padding:"2px 4px"}}>
-                      {hideBalance?"🙈":"👁️"}
-                    </button>
-                  </div>
-                  <div className="bal-amount" style={{color:!hideBalance&&dashData.saldo<0?"#f87171":"#fff",letterSpacing:hideBalance?4:-1}}>
-                    {hideBalance?"••••••••":fmtRp(dashData.saldo)}
-                  </div>
-                  <div className="bal-row">
-                    <div className="mini-stat">
-                      <div className="mini-label"><div className="mini-dot" style={{background:"#4ade80"}}/> Pemasukan</div>
-                      <div className="mini-val" style={{color:"#4ade80"}}>{hideBalance?"••••":fmtRp(dashData.pemasukan)}</div>
-                    </div>
-                    <div className="mini-stat">
-                      <div className="mini-label"><div className="mini-dot" style={{background:"#f87171"}}/> Pengeluaran</div>
-                      <div className="mini-val" style={{color:"#f87171"}}>{hideBalance?"••••":fmtRp(dashData.pengeluaran)}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Kategori */}
-                {dashData.katSorted.length > 0 && <>
-                  <div className="sec-title">Kategori terboros — {monthLabel(dashMonth)}</div>
-                  {dashData.katSorted.slice(0,5).map(([kat,val]) => {
-                    const pct = Math.round((val/dashData.pengeluaran)*100);
-                    return (
-                      <div key={kat} className="cat-bar-wrap">
-                        <div style={{fontSize:20,width:28,textAlign:"center"}}>{EMOJI[kat]}</div>
-                        <div style={{flex:1}}>
-                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                            <span style={{fontSize:13,fontWeight:600,color:"#bbb"}}>{kat}</span>
-                            <span style={{fontSize:12,fontFamily:"DM Mono",color:"#666"}}>{fmtRp(val)}</span>
-                          </div>
-                          <div className="cat-bar-bg"><div className="cat-bar-fill" style={{width:`${pct}%`}}/></div>
-                        </div>
-                        <span style={{fontSize:11,color:"#555",fontFamily:"DM Mono",width:30,textAlign:"right"}}>{pct}%</span>
-                      </div>
-                    );
-                  })}
-                  <div style={{height:16}}/>
-                </>}
-
-                {/* Recent */}
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                  <div className="sec-title" style={{margin:0}}>Transaksi — {monthLabel(dashMonth)}</div>
-                  <button className="export-btn" onClick={handleExport}>📥 Export Excel</button>
-                </div>
-                {dashData.txs.length===0
-                  ? <div className="empty"><div className="empty-icon">📭</div><div className="empty-text">Belum ada transaksi</div><div className="empty-sub">di {monthLabel(dashMonth)}</div></div>
-                  : dashData.txs.map(t=>(
-                    <div key={t.id} className="tx-item">
-                      <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
-                      <div className="tx-info">
-                        <div className="tx-desc">{t.deskripsi}</div>
-                        <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
-                        <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
-                          {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
-                        </span>
-                      </div>
-                      <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
-                        {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
-                      </div>
-                    </div>
-                  ))
-                }
-              </div>
-            </>}
-
-            {/* ─── INPUT ─── */}
-            {tab==="input" && <>
-              <div className="hdr"><div><div className="hdr-sub">Catat transaksi</div><div className="hdr-title">Input Baru ✏️</div></div></div>
-              <div className="scroll">
-                <div className="form-card">
-                  <div className="toggle-row">
-                    <button className={`tog-btn ${form.jenis==="Pemasukan"?"tog-in":""}`} onClick={()=>setForm(f=>({...f,jenis:"Pemasukan",kategori:"Gaji"}))}>⬆ Pemasukan</button>
-                    <button className={`tog-btn ${form.jenis==="Pengeluaran"?"tog-out":""}`} onClick={()=>setForm(f=>({...f,jenis:"Pengeluaran",kategori:"Makan"}))}>⬇ Pengeluaran</button>
-                  </div>
-                  <div className="field-label">Nominal (Rp)</div>
-                  <input className="inp" inputMode="numeric" placeholder="0" value={form.nominal} onChange={e=>{ const raw = e.target.value.replace(/\D/g,""); setForm(f=>({...f,nominal:raw ? parseInt(raw).toLocaleString("id-ID") : ""})); }}/>
-                  <div className="field-label">Tanggal</div>
-                  <input className="inp" type="date" value={form.tanggal} onChange={e=>setForm(f=>({...f,tanggal:e.target.value}))}/>
-                  <div className="field-label">Kategori</div>
-                  <div className="kat-grid">
-                    {jenisKat.map(k=>(
-                      <div key={k} className={`kat-item ${form.kategori===k?"sel":""}`} onClick={()=>setForm(f=>({...f,kategori:k}))}>
-                        <div style={{fontSize:22,marginBottom:4}}>{EMOJI[k]}</div>{k}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="field-label">Deskripsi</div>
-                  <input className="inp" placeholder="Contoh: makan siang berdua..." value={form.deskripsi} onChange={e=>setForm(f=>({...f,deskripsi:e.target.value}))}/>
-                  <button className="submit-btn" onClick={handleSubmit} disabled={syncing}>{syncing?"Menyimpan...":"💾 Simpan & Sync"}</button>
-                </div>
-              </div>
-            </>}
-
-            {/* ─── HISTORY ─── */}
-            {tab==="history" && <>
-              <div className="hdr">
-                <div><div className="hdr-sub">Semua catatan</div><div className="hdr-title">Riwayat 📜</div></div>
-                <button className="export-btn" onClick={handleExport}>📥 Excel</button>
-              </div>
-              <div className="scroll">
-                {/* Search bar */}
-                <div style={{position:"relative",marginBottom:14}}>
-                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,opacity:.4}}>🔍</span>
-                  <input style={{width:"100%",background:"#13131c",border:"1.5px solid #1e1e2e",borderRadius:14,padding:"12px 16px 12px 40px",color:"#f0f0f8",fontFamily:"inherit",fontSize:14,outline:"none",WebkitAppearance:"none"}}
-                    placeholder="Cari transaksi, kategori, nama..."
-                    value={search} onChange={e=>setSearch(e.target.value)}/>
-                  {search && <button onClick={()=>setSearch("")}
-                    style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#555",cursor:"pointer",fontSize:20,lineHeight:1}}>×</button>}
-                </div>
-
-                {/* Month pills — hide while searching */}
-                {!isSearching && (
-                  <div style={{display:"flex",gap:8,overflowX:"auto",margin:"0 -20px",padding:"0 20px 14px",scrollbarWidth:"none"}}>
-                    <div onClick={()=>setFilterMonth("")}
-                      style={{flexShrink:0,background:filterMonth===""?"#7c5cfc22":"#13131c",border:`1px solid ${filterMonth===""?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===""?"#c4a8ff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
-                      3 bln terakhir
-                    </div>
-                    {allMonths.filter(m=>m>=THREE_MONTHS_AGO).map((m,i)=>(
-                      <div key={m} onClick={()=>setFilterMonth(m)}
-                        style={{flexShrink:0,background:filterMonth===m?"#7c5cfc22":"#13131c",border:`1px solid ${filterMonth===m?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===m?"#c4a8ff":i===0?"#3a8eff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
-                        {i===0?"Bulan ini":monthLabel(m)}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Jenis filter */}
-                <div className="filter-row">
-                  {["Semua","Pemasukan","Pengeluaran","Makan","Transport","Belanja","Tagihan","Nongkrong","Hiburan","Tabungan"].map(f=>(
-                    <div key={f} className={`filter-pill ${filterJenis===f?"sel":""}`} onClick={()=>setFilterJenis(f)}>{f}</div>
-                  ))}
-                </div>
-
-                {/* Summary strip */}
-                <div style={{display:"flex",gap:10,marginBottom:16}}>
-                  {[["#4ade80","Pemasukan",histPemasukan],["#f87171","Pengeluaran",histPengeluaran]].map(([c,label,val])=>(
-                    <div key={label} style={{flex:1,background:"#13131c",borderRadius:14,border:"1px solid #1e1e2e",padding:"10px 12px"}}>
-                      <div style={{fontSize:10,color:"#555",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,display:"flex",alignItems:"center",gap:4}}>
-                        <div style={{width:6,height:6,borderRadius:"50%",background:c}}/>{label}
-                      </div>
-                      <div style={{fontSize:13,fontWeight:700,fontFamily:"DM Mono,monospace",color:c,marginTop:3}}>{fmtRp(val)}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Old data banner */}
-                {!isSearching && !showOld && oldTxCount > 0 && (
-                  <div onClick={()=>setShowOld(true)}
-                    style={{display:"flex",alignItems:"center",gap:10,background:"#13131c",border:"1px solid #1e1e2e",borderRadius:14,padding:"12px 14px",marginBottom:14,cursor:"pointer"}}>
-                    <span style={{fontSize:18}}>🗂️</span>
-                    <div style={{flex:1,fontSize:12,color:"#555",fontWeight:600}}>
-                      Ada {oldTxCount} transaksi tersembunyi {oldMonthMin ? `dari ${monthLabel(oldMonthMin)}` : ""}
-                    </div>
-                    <span style={{fontSize:11,color:"#7c5cfc",fontWeight:700}}>Tampilkan →</span>
-                  </div>
-                )}
-
-                {/* Search info */}
-                {isSearching && (
-                  <div style={{fontSize:12,color:"#555",marginBottom:12,fontWeight:600}}>
-                    🔍 Mencari di semua transaksi termasuk yang lama...
-                  </div>
-                )}
-
-                {/* Results grouped by month */}
-                {histFiltered.length===0
-                  ? <div className="empty"><div className="empty-icon">🔍</div><div className="empty-text">Tidak ada hasil</div><div className="empty-sub">Coba kata kunci atau filter lain</div></div>
-                  : histGrouped.map(([monthKey, txs]) => (
-                    <div key={monthKey}>
-                      <div style={{fontSize:11,fontWeight:700,color:"#333",textTransform:"uppercase",letterSpacing:1,padding:"16px 0 8px"}}>
-                        {monthLabel(monthKey)} · {txs.length} transaksi
-                      </div>
-                      {txs.map(t=>(
-                        <div key={t.id} className="tx-item">
-                          <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
-                          <div className="tx-info">
-                            <div className="tx-desc">{t.deskripsi}</div>
-                            <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
-                            <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
-                              {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
-                            </span>
-                          </div>
-                          <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-                            <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
-                              {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
-                            </div>
-                            <div style={{display:"flex",gap:6}}>
-                              {t.addedBy===myName && (
-                                <button className="del-btn" title="Edit"
-                                  onClick={()=>setEditTx({...t, nominal:t.nominal.toLocaleString("id-ID")})}>✏️</button>
-                              )}
-                              <button className="del-btn" onClick={()=>handleDelete(t.id)}>🗑️</button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ))
-                }
-
-                {/* Hide old button */}
-                {showOld && !isSearching && (
-                  <div style={{textAlign:"center",padding:"16px 0"}}>
-                    <button onClick={()=>setShowOld(false)}
-                      style={{background:"none",border:"1px solid #1e1e2e",borderRadius:999,padding:"8px 20px",color:"#444",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer"}}>
-                      Sembunyikan transaksi lama
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>}
-
-            {/* ─── SPLIT BILL ─── */}
-            {tab==="split" && <>
-              <div className="hdr"><div><div className="hdr-title">Split Bill ✂️</div></div></div>
-              <div className="scroll">
-
-                {/* Tambah Teman */}
-                <div className="sec-title">Temen yang nitip</div>
-                <div style={{display:"flex",gap:8,marginBottom:12}}>
-                  <input className="inp" style={{margin:0,flex:1}} placeholder="Nama temen..." value={sbFriendInput}
-                    onChange={e=>setSbFriendInput(e.target.value)}
-                    onKeyDown={e=>e.key==="Enter"&&sbAddFriend()}/>
-                  <button onClick={sbAddFriend} style={{padding:"12px 16px",borderRadius:14,border:"none",background:"#7c5cfc",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Tambah</button>
-                </div>
-                <div style={{marginBottom:16}}>
-                  {sbFriends.length===0 && <div style={{fontSize:13,color:"#444",marginBottom:12}}>Belum ada temen yang ditambah</div>}
-                  {sbFriends.map(f => {
-                    const c = sbGetColor(f);
-                    return (
-                      <span key={f} style={{display:"inline-flex",alignItems:"center",gap:6,background:c.bg,border:`1px solid ${c.color}88`,borderRadius:999,padding:"5px 12px",fontSize:12,fontWeight:700,color:c.color,marginRight:6,marginBottom:6}}>
-                        {f}
-                        <button onClick={()=>setSbFriends(fr=>fr.filter(x=>x!==f))} style={{background:"none",border:"none",color:"inherit",cursor:"pointer",fontSize:14,lineHeight:1,opacity:.7}}>×</button>
-                      </span>
-                    );
-                  })}
-                </div>
-
-                {/* Tambah Item */}
-                <div className="sec-title">Tambah pesanan</div>
-                <div style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:16,marginBottom:12}}>
-                  <div className="field-label">Nama item</div>
-                  <input className="inp" placeholder="Contoh: Kopi Susu..." value={sbItemName} onChange={e=>setSbItemName(e.target.value)}/>
-                  <div className="field-label">Harga (Rp)</div>
-                  <input className="inp" inputMode="numeric" placeholder="0" value={sbItemPrice}
-                    onChange={e=>{ const raw=e.target.value.replace(/\D/g,""); setSbItemPrice(raw?parseInt(raw).toLocaleString("id-ID"):""); }}/>
-                  <div className="field-label">Untuk siapa?</div>
-                  <div style={{display:"flex",flexWrap:"wrap",marginBottom:12}}>
-                    {sbAllPeople.map(p => {
-                      const c   = sbGetColor(p);
-                      const sel = sbSelectedFor.includes(p);
-                      return (
-                        <span key={p}
-                          onClick={()=>setSbSelectedFor(s=>s.includes(p)?s.filter(x=>x!==p):[...s,p])}
-                          style={{display:"inline-flex",alignItems:"center",background:sel?c.bg:"#1e1e2e",border:`1px solid ${sel?c.color:"#2a2a3a"}`,borderRadius:999,padding:"6px 14px",fontSize:12,fontWeight:700,color:sel?c.color:"#666",marginRight:6,marginBottom:6,cursor:"pointer"}}>
-                          {p}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  <button onClick={sbAddItem} style={{width:"100%",padding:13,borderRadius:14,border:"none",background:"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>
-                    + Tambah Item
-                  </button>
-                </div>
-
-                {/* Daftar Item */}
-                {sbItems.length > 0 && <>
-                  <div className="sec-title">Daftar pesanan ({sbItems.length})</div>
-                  <div style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:"4px 16px",marginBottom:12}}>
-                    {sbItems.map(item => (
-                      <div key={item.id} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 0",borderBottom:"1px solid #0d0d14"}}>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:14,fontWeight:600,color:"#f0f0f8"}}>{item.name}</div>
-                          <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:4}}>
-                            {item.for.map(p => {
-                              const c = sbGetColor(p);
-                              return <span key={p} style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:999,background:c.bg,color:c.color}}>{p}</span>;
-                            })}
-                          </div>
-                        </div>
-                        <div style={{fontSize:14,fontWeight:700,fontFamily:"'DM Mono',monospace",color:"#f0f0f8",flexShrink:0}}>
-                          {"Rp "+item.price.toLocaleString("id-ID")}
-                        </div>
-                        <button onClick={()=>setSbItems(its=>its.filter(x=>x.id!==item.id))}
-                          style={{background:"none",border:"none",cursor:"pointer",fontSize:14,opacity:.4,padding:4}}>🗑️</button>
-                      </div>
-                    ))}
-                  </div>
-                </>}
-
-                {/* Summary */}
-                {sbItems.length > 0 && <>
-                  <div className="sec-title">Ringkasan tagihan</div>
-
-                  {/* Gue + Pasangan */}
-                  <div style={{background:"linear-gradient(135deg,#1a1040,#0e1a3a)",borderRadius:20,border:"1px solid #2a2060",padding:16,marginBottom:12}}>
-                    <div style={{fontSize:11,color:"#8888aa",textTransform:"uppercase",letterSpacing:1,fontWeight:600,marginBottom:4}}>💑 Gue &amp; Pasangan</div>
-                    <div style={{fontSize:28,fontWeight:700,fontFamily:"'DM Mono',monospace",color:"#c4a8ff",marginBottom:4}}>
-                      {"Rp "+Math.round(sbMyTotal).toLocaleString("id-ID")}
-                    </div>
-                    <div style={{fontSize:11,color:"#555",marginBottom:12}}>Total yang harus lo berdua bayar</div>
-                    <button onClick={sbExportToFinance} disabled={sbExported}
-                      style={{width:"100%",padding:13,borderRadius:14,border:"none",background:sbExported?"#1e1e2e":"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:sbExported?"#555":"white",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:sbExported?"default":"pointer"}}>
-                      {sbExported?"✅ Sudah dicatat ke Finance Tracker":"📥 Catat ke Finance Tracker"}
-                    </button>
-                  </div>
-
-                  {/* Per temen */}
-                  {sbFriends.filter(f=>sbTotals[f]>0).map(f => {
-                    const c    = sbGetColor(f);
-                    const paid = sbPaidMap[f];
-                    return (
-                      <div key={f} style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:16,marginBottom:12}}>
-                        <div style={{fontSize:11,color:c.color,textTransform:"uppercase",letterSpacing:1,fontWeight:600,marginBottom:4}}>👤 {f}</div>
-                        <div style={{fontSize:28,fontWeight:700,fontFamily:"'DM Mono',monospace",color:c.color,marginBottom:4}}>
-                          {"Rp "+Math.round(sbTotals[f]).toLocaleString("id-ID")}
-                        </div>
-                        <div style={{fontSize:11,color:"#555",marginBottom:8}}>Harus bayar ke lo</div>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:999,background:paid?"#0d1f0d":"#1f0d0d",border:`1px solid ${paid?"#2a4a2a":"#4a2a2a"}`,color:paid?"#4ade80":"#f87171"}}>
-                            {paid?"✅ Udah bayar":"⏳ Belum bayar"}
-                          </span>
-                          <button onClick={()=>setSbPaidMap(m=>({...m,[f]:!m[f]}))}
-                            style={{background:"none",border:"none",fontSize:12,fontWeight:700,color:paid?"#f87171":"#4ade80",cursor:"pointer",fontFamily:"inherit"}}>
-                            {paid?"Tandai belum":"Tandai lunas"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  <button onClick={sbReset}
-                    style={{width:"100%",padding:13,borderRadius:14,border:"1px solid #2a2a3a",background:"#1e1e2e",color:"#888",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8}}>
-                    🔄 Reset &amp; Mulai Sesi Baru
-                  </button>
-                </>}
-
-                {sbItems.length===0 && (
-                  <div style={{textAlign:"center",padding:"32px 20px"}}>
-                    <div style={{fontSize:40,marginBottom:12}}>✂️</div>
-                    <div style={{fontSize:15,fontWeight:600,color:"#555"}}>Belum ada pesanan</div>
-                    <div style={{fontSize:13,color:"#333",marginTop:6}}>Tambahin temen &amp; pesanan dulu</div>
-                  </div>
-                )}
-              </div>
-            </>}
-
-            {/* ─── IMPORT MODAL ─── */}
-            {/* ─── EDIT TRANSACTION MODAL ─── */}
-            {editTx && (
-              <div className="modal-overlay" onClick={()=>setEditTx(null)}>
-                <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
-                  <div style={{fontSize:36,marginBottom:8,textAlign:"center"}}>✏️</div>
-                  <div className="modal-title">Edit Transaksi</div>
-                  <div className="modal-sub">Hanya lo yang bisa edit transaksi ini</div>
-
-                  {/* Jenis toggle */}
-                  <div style={{display:"flex",background:"#0d0d14",borderRadius:14,padding:4,marginBottom:16,border:"1px solid #1e1e2e"}}>
-                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pemasukan"?"#0d1f0d":"none",color:editTx.jenis==="Pemasukan"?"#4ade80":"#444"}}
-                      onClick={()=>setEditTx(e=>({...e,jenis:"Pemasukan",kategori:"Gaji"}))}>⬆ Pemasukan</button>
-                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pengeluaran"?"#1f0d0d":"none",color:editTx.jenis==="Pengeluaran"?"#f87171":"#444"}}
-                      onClick={()=>setEditTx(e=>({...e,jenis:"Pengeluaran",kategori:"Makan"}))}>⬇ Pengeluaran</button>
-                  </div>
-
-                  {/* Nominal */}
-                  <div className="field-label">Nominal (Rp)</div>
-                  <input className="inp" inputMode="numeric" placeholder="0"
-                    value={editTx.nominal}
-                    onChange={e=>{ const raw=e.target.value.replace(/\D/g,""); setEditTx(t=>({...t,nominal:raw?parseInt(raw).toLocaleString("id-ID"):""})); }}/>
-
-                  {/* Tanggal */}
-                  <div className="field-label">Tanggal</div>
-                  <input className="inp" type="date" value={editTx.tanggal}
-                    onChange={e=>setEditTx(t=>({...t,tanggal:e.target.value}))}/>
-
-                  {/* Kategori */}
-                  <div className="field-label">Kategori</div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
-                    {KATEGORI[editTx.jenis].map(k=>(
-                      <div key={k}
-                        onClick={()=>setEditTx(t=>({...t,kategori:k}))}
-                        style={{background:editTx.kategori===k?"#7c5cfc1a":"#0d0d14",border:`1.5px solid ${editTx.kategori===k?"#7c5cfc":"#1e1e2e"}`,borderRadius:12,padding:"10px 6px",textAlign:"center",fontSize:11,fontWeight:700,color:editTx.kategori===k?"#c4a8ff":"#666",cursor:"pointer",lineHeight:1.4}}>
-                        <div style={{fontSize:22,marginBottom:4}}>{EMOJI[k]}</div>{k}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Deskripsi */}
-                  <div className="field-label">Deskripsi</div>
-                  <input className="inp" placeholder="Deskripsi transaksi..."
-                    value={editTx.deskripsi}
-                    onChange={e=>setEditTx(t=>({...t,deskripsi:e.target.value}))}/>
-
-                  <button className="submit-btn" onClick={handleEditSave} style={{marginBottom:10}}>
-                    💾 Simpan Perubahan
-                  </button>
-                  <button className="modal-close" onClick={()=>setEditTx(null)}>Batal</button>
-                </div>
-              </div>
-            )}
-
-            {importModal && (
-              <div className="modal-overlay" onClick={()=>setImportModal(null)}>
-                <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
-                  <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📊</div>
-                  <div className="modal-title">Data Excel ditemukan!</div>
-                  <div className="modal-sub">Gua nemu <b style={{color:"#f0f0f8"}}>{importModal.count} transaksi</b> di file Excel lo. Mau diimport semuanya ke app?</div>
-                  <div style={{background:"#0d0d14",borderRadius:16,padding:"14px 16px",marginBottom:16,border:"1px solid #1e1e2e"}}>
-                    {["Data lama dari Excel masuk ke riwayat app","Data yang udah ada di app tetap aman","Ga perlu input ulang dari awal 🎉"].map((text,i)=>(
-                      <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
-                        <span>✅</span><span style={{fontSize:13,color:"#888",lineHeight:1.4}}>{text}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <button className="submit-btn" style={{marginBottom:10}} onClick={()=>handleConfirmImport(importModal.txs)}>
-                    Import {importModal.count} transaksi
-                  </button>
-                  <button className="modal-close" onClick={()=>{ setImportModal(null); showToast("Template tersimpan tanpa import 📂"); }}>
-                    Lewatin, simpan template aja
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ─── EXPORT MODAL ─── */}
-            {exportModal && (
-              <div className="modal-overlay" onClick={()=>setExportModal(false)}>
-                <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
-                  <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📥</div>
-                  <div className="modal-title">Export berhasil!</div>
-                  <div className="modal-sub">File <b style={{color:"#f0f0f8"}}>{templateName||"Finance_Tracker_Pro.xlsx"}</b> udah ke-download dengan semua transaksi terbaru 🎉</div>
-                  <div style={{background:"#0d0d14",borderRadius:16,padding:"14px 16px",marginBottom:16,border:"1px solid #1e1e2e"}}>
-                    {["Data masuk ke sheet bulan yang sesuai","Summary & Dashboard otomatis ke-update","File siap dibuka di Excel / Google Sheets"].map((text,i)=>(
-                      <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
-                        <span>✅</span><span style={{fontSize:13,color:"#888",lineHeight:1.4}}>{text}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <button className="modal-close" onClick={()=>setExportModal(false)}>Oke, mantap! 👍</button>
-                </div>
-              </div>
-            )}
-
-            {/* ─── BOTTOM NAV ─── */}
-            <div className="bnav">
-              {[{id:"dashboard",icon:"📊",label:"Dashboard"},{id:"input",icon:"➕",label:"Input"},{id:"split",icon:"✂️",label:"Split Bill"},{id:"history",icon:"📜",label:"Riwayat"}].map(n=>(
-                <button key={n.id} className={`nav-btn ${tab===n.id?"act":""}`} onClick={()=>setTab(n.id)}>
-                  <div className="nav-icon">{n.icon}</div>
-                  <div className="nav-label">{n.label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App/>);
-  </script>
-</body>
-</html>
+            <button className="submit-btn" disabled={!nameInput.trim()} onClick={()=>{ setMyName(nameInput.trim()); setNameSet(true);
