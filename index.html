@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="theme-color" content="#0B0B12"/>
+  <meta name="theme-color" content="#000"/>
   <title>Finance Berdua 💑</title>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icon-192.png"/>
@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>html,body,#root{height:100%;margin:0;padding:0;background:#0B0B12;}</style>
+  <style>html,body,#root{height:100%;margin:0;padding:0;background:#000;}</style>
 </head>
 <body>
   <div id="root"></div>
@@ -109,74 +109,88 @@
     };
 
     const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}::-webkit-scrollbar{display:none;}body{background:#0B0B12;}
-.app{font-family:'DM Sans',sans-serif;background:#0B0B12;min-height:100dvh;color:#f0f0f8;max-width:430px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
-.screen{flex:1;display:flex;flex-direction:column;}.scroll{flex:1;overflow-y:auto;padding:0 20px 100px;}
-.hdr{padding:52px 20px 12px;display:flex;justify-content:space-between;align-items:flex-start;}
-.hdr-sub{font-size:12px;color:#555;font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
-.hdr-title{font-size:22px;font-weight:700;color:#f0f0f8;margin-top:2px;}
-.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
-.badge{display:flex;align-items:center;gap:5px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;}
-.badge-on{background:#0d1a0d;border:1px solid #2a4a2a;color:#4ade80;}
-.badge-off{background:#1a1010;border:1px solid #4a2a2a;color:#f87171;}
-.badge-partner{background:#1a0d2a;border:1px solid #4a2a5a;color:#c084fc;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
-.dot{width:7px;height:7px;border-radius:50%;}.dot-on{background:#4ade80;animation:pulse 2s infinite;}
-.dot-off{background:#f87171;}.dot-pur{background:#c084fc;animation:pulse 2s infinite;}
-.balance-card{margin:0 20px 20px;background:linear-gradient(135deg,#1a1040,#0e1a3a);border-radius:24px;padding:24px;border:1px solid #2a2060;position:relative;overflow:hidden;}
-.balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(124,92,252,.25),transparent 70%);}
-.balance-card::after{content:'';position:absolute;bottom:-30px;left:-20px;width:110px;height:110px;background:radial-gradient(circle,rgba(58,142,255,.2),transparent 70%);}
-.bal-label{font-size:11px;color:#8888aa;text-transform:uppercase;letter-spacing:1px;font-weight:600;}
-.bal-amount{font-size:34px;font-weight:700;color:#fff;margin:6px 0 20px;font-family:'DM Mono',monospace;letter-spacing:-1px;}
-.bal-row{display:flex;gap:10px;}.mini-stat{flex:1;background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;}
-.mini-label{font-size:10px;color:#8888aa;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:4px;}
-.mini-dot{width:6px;height:6px;border-radius:50%;}.mini-val{font-size:14px;font-weight:700;margin-top:4px;font-family:'DM Mono',monospace;}
-.sec-title{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
-.cat-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.cat-bar-bg{flex:1;background:#1e1e2e;border-radius:999px;height:5px;}
-.cat-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#7c5cfc,#3a8eff);}
-.tx-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #13131c;}
-.tx-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.tx-info{flex:1;min-width:0;}.tx-desc{font-size:14px;font-weight:600;color:#f0f0f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tx-meta{font-size:11px;color:#555;margin-top:2px;}.who-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-block;margin-top:3px;}
-.tx-amount{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0;}
-.del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.35;padding:4px;line-height:1;}
-.form-card{background:#13131c;border-radius:24px;border:1px solid #1e1e2e;padding:20px;}
-.toggle-row{display:flex;background:#0d0d14;border-radius:14px;padding:4px;margin-bottom:20px;border:1px solid #1e1e2e;}
-.tog-btn{flex:1;padding:10px;border-radius:10px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:none;color:#444;}
-.tog-in{background:#0d1f0d!important;color:#4ade80!important;}.tog-out{background:#1f0d0d!important;color:#f87171!important;}
-.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:8px;}
-.inp{width:100%;background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:14px;padding:13px 16px;color:#f0f0f8;font-family:inherit;font-size:15px;outline:none;margin-bottom:14px;transition:border-color .2s;-webkit-appearance:none;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+::-webkit-scrollbar{display:none;}
+body{background:#000;}
+.app{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#000;min-height:100dvh;color:#fff;max-width:430px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
+.screen{flex:1;display:flex;flex-direction:column;}
+.scroll{flex:1;overflow-y:auto;padding:0 16px 100px;}
+.hdr{padding:56px 16px 8px;display:flex;justify-content:space-between;align-items:flex-end;}
+.hdr-sub{font-size:13px;color:rgba(255,255,255,.35);font-weight:500;letter-spacing:-.1px;}
+.hdr-title{font-size:28px;font-weight:700;color:#fff;margin-top:2px;letter-spacing:-.6px;}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+.badge{display:flex;align-items:center;gap:4px;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;letter-spacing:-.1px;}
+.badge-on{background:rgba(52,199,89,.12);border:.5px solid rgba(52,199,89,.3);color:#34c759;}
+.badge-off{background:rgba(255,59,48,.1);border:.5px solid rgba(255,59,48,.25);color:#ff3b30;}
+.badge-partner{background:rgba(175,82,222,.12);border:.5px solid rgba(175,82,222,.3);color:#af52de;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.75);}}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot-on{background:#34c759;animation:pulse 2s infinite;}
+.dot-off{background:#ff3b30;}
+.dot-pur{background:#af52de;animation:pulse 2s infinite;}
+.balance-card{margin:12px 16px 20px;background:#111;border-radius:22px;padding:20px;border:.5px solid rgba(255,255,255,.08);}
+.bal-label{font-size:12px;color:rgba(255,255,255,.35);font-weight:500;letter-spacing:-.1px;}
+.bal-amount{font-size:38px;font-weight:700;color:#fff;margin:4px 0 16px;letter-spacing:-1.5px;}
+.bal-row{display:flex;gap:8px;}
+.mini-stat{flex:1;background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;border:.5px solid rgba(255,255,255,.06);}
+.mini-label{font-size:10px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.3px;text-transform:uppercase;display:flex;align-items:center;gap:4px;}
+.mini-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.mini-val{font-size:15px;font-weight:700;margin-top:5px;letter-spacing:-.4px;}
+.sec-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+.cat-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.cat-bar-bg{flex:1;background:rgba(255,255,255,.06);border-radius:999px;height:4px;}
+.cat-bar-fill{height:100%;border-radius:999px;background:#fff;}
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:.5px solid rgba(255,255,255,.05);}
+.tx-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.tx-info{flex:1;min-width:0;}
+.tx-desc{font-size:15px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;}
+.tx-meta{font-size:12px;color:rgba(255,255,255,.3);margin-top:2px;font-weight:400;}
+.who-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;display:inline-block;margin-top:4px;letter-spacing:-.1px;}
+.tx-amount{font-size:15px;font-weight:600;flex-shrink:0;letter-spacing:-.3px;}
+.del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.25;padding:4px;line-height:1;}
+.form-card{background:#111;border-radius:22px;border:.5px solid rgba(255,255,255,.08);padding:20px;}
+.toggle-row{display:flex;background:rgba(255,255,255,.04);border-radius:14px;padding:3px;margin-bottom:20px;border:.5px solid rgba(255,255,255,.06);}
+.tog-btn{flex:1;padding:11px;border-radius:11px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;background:none;color:rgba(255,255,255,.3);letter-spacing:-.2px;}
+.tog-in{background:rgba(52,199,89,.15)!important;color:#34c759!important;}
+.tog-out{background:rgba(255,59,48,.12)!important;color:#ff3b30!important;}
+.field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.3);margin-bottom:8px;}
+.inp{width:100%;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.1);border-radius:13px;padding:13px 15px;color:#fff;font-family:inherit;font-size:16px;outline:none;margin-bottom:14px;transition:border-color .2s;-webkit-appearance:none;letter-spacing:-.2px;}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 input[type=number]{-moz-appearance:textfield;}
-.inp:focus{border-color:#7c5cfc;}.inp::placeholder{color:#444;}
+.inp:focus{border-color:rgba(255,255,255,.35);}
+.inp::placeholder{color:rgba(255,255,255,.2);}
 .kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.kat-item{background:#0d0d14;border:1.5px solid #1e1e2e;border-radius:12px;padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:#666;cursor:pointer;line-height:1.4;}
-.kat-item.sel{border-color:#7c5cfc;background:#7c5cfc1a;color:#c4a8ff;}
-.submit-btn{width:100%;padding:15px;border-radius:16px;border:none;background:linear-gradient(135deg,#7c5cfc,#3a8eff);color:white;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
-.submit-btn:disabled{opacity:.4;cursor:not-allowed;}
-.filter-row{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 12px;scrollbar-width:none;}
-.filter-pill{flex-shrink:0;background:#16161f;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;color:#666;cursor:pointer;white-space:nowrap;}
-.filter-pill.sel{background:#7c5cfc22;border-color:#7c5cfc;color:#c4a8ff;}
-.export-btn{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:999px;padding:7px 14px;font-family:inherit;font-size:11px;font-weight:700;color:#888;cursor:pointer;display:flex;align-items:center;gap:5px;}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e1e2e;border:1px solid #3a3a5a;border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#f0f0f8;z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .25s ease;}
-.toast.err{background:#1f0d0d;border-color:#5a2a2a;color:#f87171;}
-@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
-.sync-bar{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c5cfc,#3a8eff,#7c5cfc);background-size:200%;animation:syncAnim 1.5s linear infinite;z-index:9999;}
-@keyframes syncAnim{0%{background-position:0%}100%{background-position:200%;}}
-.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:80px;background:#0d0d14ee;border-top:1px solid #1e1e2e;display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;backdrop-filter:blur(24px);}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 20px;border-radius:16px;cursor:pointer;border:none;background:none;}
-.nav-btn.act{background:#1e1e2e;}.nav-icon{font-size:22px;line-height:1;}
-.nav-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#444;}.nav-btn.act .nav-label{color:#c4a8ff;}
-.empty{text-align:center;padding:48px 20px;}.empty-icon{font-size:48px;margin-bottom:12px;}
-.empty-text{font-size:15px;font-weight:600;color:#555;}.empty-sub{font-size:13px;margin-top:6px;color:#333;}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
-.modal-sheet{background:#13131c;border-radius:28px 28px 0 0;border:1px solid #2a2a3a;padding:28px 24px 40px;width:100%;max-width:430px;animation:slideUp .3s ease;}
+.kat-item{background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.08);border-radius:14px;padding:11px 6px;text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);cursor:pointer;line-height:1.4;letter-spacing:-.1px;transition:all .15s;}
+.kat-item.sel{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;}
+.submit-btn{width:100%;padding:15px;border-radius:15px;border:none;background:#fff;color:#000;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;letter-spacing:-.2px;transition:opacity .15s;}
+.submit-btn:disabled{opacity:.3;cursor:not-allowed;}
+.submit-btn:active{opacity:.8;}
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;}
+.filter-pill{flex-shrink:0;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,.35);cursor:pointer;white-space:nowrap;letter-spacing:-.1px;}
+.filter-pill.sel{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff;}
+.export-btn{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:999px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:-.1px;}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.96);border:.5px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#fff;z-index:9999;white-space:nowrap;backdrop-filter:blur(20px);animation:toastIn .2s ease;letter-spacing:-.2px;}
+.toast.err{background:rgba(40,10,10,.96);border-color:rgba(255,59,48,.25);color:#ff3b30;}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-6px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.sync-bar{position:fixed;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,#fff,transparent);background-size:200%;animation:syncAnim 1.2s ease-in-out infinite;z-index:9999;}
+@keyframes syncAnim{0%{background-position:-100%}100%{background-position:300%;}}
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:82px;background:rgba(0,0,0,.85);border-top:.5px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-around;padding-bottom:10px;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 18px;border-radius:14px;cursor:pointer;border:none;background:none;transition:opacity .15s;}
+.nav-btn.act{background:rgba(255,255,255,.08);}
+.nav-icon{font-size:22px;line-height:1;}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.2px;text-transform:uppercase;color:rgba(255,255,255,.25);}
+.nav-btn.act .nav-label{color:rgba(255,255,255,.8);}
+.empty{text-align:center;padding:52px 20px;}
+.empty-icon{font-size:44px;margin-bottom:10px;}
+.empty-text{font-size:15px;font-weight:500;color:rgba(255,255,255,.3);letter-spacing:-.2px;}
+.empty-sub{font-size:13px;margin-top:5px;color:rgba(255,255,255,.18);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+.modal-sheet{background:#111;border-radius:26px 26px 0 0;border:.5px solid rgba(255,255,255,.08);padding:28px 20px 44px;width:100%;max-width:430px;animation:slideUp .3s cubic-bezier(.32,0,.67,0);}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-.modal-title{font-size:18px;font-weight:700;color:#f0f0f8;margin-bottom:6px;text-align:center;}
-.modal-sub{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5;text-align:center;}
-.modal-close{width:100%;padding:13px;border-radius:16px;border:1px solid #2a2a3a;background:#1e1e2e;color:#888;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;}
+.modal-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;text-align:center;letter-spacing:-.4px;}
+.modal-sub{font-size:14px;color:rgba(255,255,255,.4);margin-bottom:20px;line-height:1.5;text-align:center;letter-spacing:-.1px;}
+.modal-close{width:100%;padding:14px;border-radius:15px;border:.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px;letter-spacing:-.2px;}
 `;
 
     function App() {
@@ -332,10 +346,10 @@ input[type=number]{-moz-appearance:textfield;}
       };
 
       // ── Split Bill Helpers ──
-      const FRIEND_COLORS = ["#f59e0b","#4ade80","#f87171","#38bdf8","#fb923c"];
+      const FRIEND_COLORS = ["#f59e0b","#34c759","#ff3b30","#38bdf8","#fb923c"];
       const SB_PERSON_COLORS = {
-        "Gue":      { bg:"#1e1e3a", color:"#8888ff" },
-        "Pasangan": { bg:"#1a0d2a", color:"#c084fc" },
+        "Gue":      { bg:"rgba(255,255,255,.08)", color:"#fff" },
+        "Pasangan": { bg:"rgba(175,82,222,.12)", color:"#af52de" },
       };
       const sbGetColor = (name) => {
         if (SB_PERSON_COLORS[name]) return SB_PERSON_COLORS[name];
@@ -410,7 +424,7 @@ input[type=number]{-moz-appearance:textfield;}
                 contents: [{
                   parts: [
                     { inline_data: { mime_type: mediaType, data: base64 } },
-                    { text: "Baca struk/nota ini dan ekstrak semua item beserta harganya. Balas HANYA dengan JSON array seperti ini, tanpa teks lain, tanpa markdown: [{"name": "nama item", "price": 12000}, ...]. Gunakan harga satuan (bukan subtotal). Jika ada qty lebih dari 1, sertakan di nama item." }
+                    { text: 'Baca struk/nota ini dan ekstrak semua item beserta harganya. Balas HANYA dengan JSON array seperti ini, tanpa teks lain, tanpa markdown: [{"name": "nama item", "price": 12000}, ...]. Gunakan harga satuan (bukan subtotal). Jika ada qty lebih dari 1, sertakan di nama item.' }
                   ]
                 }],
                 generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
@@ -666,12 +680,12 @@ input[type=number]{-moz-appearance:textfield;}
 
       // ── Name setup ──
       if (!nameSet) return (
-        <div style={{fontFamily:"'DM Sans',sans-serif",background:"#0B0B12",minHeight:"100dvh",color:"#f0f0f8",maxWidth:430,margin:"0 auto",display:"flex",flexDirection:"column",justifyContent:"center",padding:"40px 24px"}}>
+        <div style={{fontFamily:"'DM Sans',sans-serif",background:"#000",minHeight:"100dvh",color:"#fff",maxWidth:430,margin:"0 auto",display:"flex",flexDirection:"column",justifyContent:"center",padding:"40px 24px"}}>
           <style>{CSS}</style>
           <div style={{textAlign:"center",marginBottom:32}}>
             <div style={{fontSize:52,marginBottom:14}}>💑</div>
             <div style={{fontSize:24,fontWeight:700}}>Finance Berdua</div>
-            <div style={{fontSize:14,color:"#444",marginTop:8,lineHeight:1.5}}>Tracking keuangan bareng pasangan<br/>sync otomatis & real-time</div>
+            <div style={{fontSize:14,color:"rgba(255,255,255,.35)",marginTop:8,lineHeight:1.5}}>Tracking keuangan bareng pasangan<br/>sync otomatis & real-time</div>
           </div>
           <div className="form-card">
             <div className="field-label">Nama lo siapa?</div>
@@ -682,7 +696,7 @@ input[type=number]{-moz-appearance:textfield;}
             <button className="submit-btn" disabled={!nameInput.trim()} onClick={()=>{ setMyName(nameInput.trim()); setNameSet(true); }}>
               Masuk 🚀
             </button>
-            <div style={{fontSize:12,color:"#333",textAlign:"center",marginTop:14,lineHeight:1.6}}>
+            <div style={{fontSize:12,color:"rgba(255,255,255,.2)",textAlign:"center",marginTop:14,lineHeight:1.6}}>
               💡 Buka link yang sama di HP pasangan lo<br/>data otomatis ke-share & real-time
             </div>
           </div>
@@ -717,22 +731,22 @@ input[type=number]{-moz-appearance:textfield;}
               <div className="scroll">
                 {/* Template card */}
                 {!templateData ? (
-                  <label style={{display:"flex",alignItems:"center",gap:12,background:"#13131c",border:"1.5px dashed #2a2a3a",borderRadius:20,padding:"14px 18px",marginBottom:16,cursor:"pointer"}}>
+                  <label style={{display:"flex",alignItems:"center",gap:12,background:"#111",border:"1.5px dashed #2a2a3a",borderRadius:20,padding:"14px 18px",marginBottom:16,cursor:"pointer"}}>
                     <div style={{fontSize:28}}>📂</div>
                     <div style={{flex:1}}>
-                      <div style={{fontSize:13,fontWeight:700,color:"#888"}}>Upload template Excel lo</div>
-                      <div style={{fontSize:11,color:"#444",marginTop:2}}>Tap → pilih Finance_Tracker_Pro.xlsx</div>
+                      <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.4)"}}>Upload template Excel lo</div>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,.25)",marginTop:2}}>Tap → pilih Finance_Tracker_Pro.xlsx</div>
                     </div>
                     <input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
                   </label>
                 ) : (
-                  <div style={{display:"flex",alignItems:"center",gap:10,background:"#0d1f0d",border:"1px solid #2a4a2a",borderRadius:16,padding:"10px 16px",marginBottom:16}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,background:"rgba(52,199,89,.12)",border:"1px solid #2a4a2a",borderRadius:16,padding:"10px 16px",marginBottom:16}}>
                     <div style={{fontSize:20}}>✅</div>
                     <div style={{flex:1}}>
-                      <div style={{fontSize:12,fontWeight:700,color:"#4ade80"}}>{templateName}</div>
-                      <div style={{fontSize:10,color:"#555",marginTop:1}}>Template siap dipakai</div>
+                      <div style={{fontSize:12,fontWeight:700,color:"#34c759"}}>{templateName}</div>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,.3)",marginTop:1}}>Template siap dipakai</div>
                     </div>
-                    <label style={{cursor:"pointer",fontSize:11,color:"#888",fontWeight:700,padding:"4px 10px",background:"#1e1e2e",borderRadius:999,border:"1px solid #2a2a3a",flexShrink:0}}>
+                    <label style={{cursor:"pointer",fontSize:11,color:"rgba(255,255,255,.4)",fontWeight:700,padding:"4px 10px",background:"rgba(255,255,255,.08)",borderRadius:999,border:"1px solid #2a2a3a",flexShrink:0}}>
                       Ganti<input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
                     </label>
                   </div>
@@ -742,7 +756,7 @@ input[type=number]{-moz-appearance:textfield;}
                 <div style={{display:"flex",gap:8,overflowX:"auto",margin:"0 -20px",padding:"0 20px 16px",scrollbarWidth:"none"}}>
                   {allMonths.slice(0,6).map((m,i) => (
                     <div key={m} onClick={()=>setDashMonth(m)}
-                      style={{flexShrink:0,background:dashMonth===m?"#7c5cfc22":"#13131c",border:`1.5px solid ${dashMonth===m?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 16px",fontSize:12,fontWeight:700,color:dashMonth===m?"#c4a8ff":i===0?"#3a8eff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
+                      style={{flexShrink:0,background:dashMonth===m?"rgba(255,255,255,.1)":"#111",border:`1.5px solid ${dashMonth===m?"rgba(255,255,255,.8)":"rgba(255,255,255,.08)"}`,borderRadius:999,padding:"7px 16px",fontSize:12,fontWeight:700,color:dashMonth===m?"#fff":i===0?"#0a84ff":"rgba(255,255,255,.3)",cursor:"pointer",whiteSpace:"nowrap"}}>
                       {i===0?"Bulan ini":monthLabel(m)}
                     </div>
                   ))}
@@ -757,17 +771,17 @@ input[type=number]{-moz-appearance:textfield;}
                       {hideBalance?"🙈":"👁️"}
                     </button>
                   </div>
-                  <div className="bal-amount" style={{color:!hideBalance&&dashData.saldo<0?"#f87171":"#fff",letterSpacing:hideBalance?4:-1}}>
+                  <div className="bal-amount" style={{color:!hideBalance&&dashData.saldo<0?"#ff3b30":"#fff",letterSpacing:hideBalance?4:-1}}>
                     {hideBalance?"••••••••":fmtRp(dashData.saldo)}
                   </div>
                   <div className="bal-row">
                     <div className="mini-stat">
-                      <div className="mini-label"><div className="mini-dot" style={{background:"#4ade80"}}/> Pemasukan</div>
-                      <div className="mini-val" style={{color:"#4ade80"}}>{hideBalance?"••••":fmtRp(dashData.pemasukan)}</div>
+                      <div className="mini-label"><div className="mini-dot" style={{background:"#34c759"}}/> Pemasukan</div>
+                      <div className="mini-val" style={{color:"#34c759"}}>{hideBalance?"••••":fmtRp(dashData.pemasukan)}</div>
                     </div>
                     <div className="mini-stat">
-                      <div className="mini-label"><div className="mini-dot" style={{background:"#f87171"}}/> Pengeluaran</div>
-                      <div className="mini-val" style={{color:"#f87171"}}>{hideBalance?"••••":fmtRp(dashData.pengeluaran)}</div>
+                      <div className="mini-label"><div className="mini-dot" style={{background:"#ff3b30"}}/> Pengeluaran</div>
+                      <div className="mini-val" style={{color:"#ff3b30"}}>{hideBalance?"••••":fmtRp(dashData.pengeluaran)}</div>
                     </div>
                   </div>
                 </div>
@@ -782,12 +796,12 @@ input[type=number]{-moz-appearance:textfield;}
                         <div style={{fontSize:20,width:28,textAlign:"center"}}>{EMOJI[kat]}</div>
                         <div style={{flex:1}}>
                           <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                            <span style={{fontSize:13,fontWeight:600,color:"#bbb"}}>{kat}</span>
-                            <span style={{fontSize:12,fontFamily:"DM Mono",color:"#666"}}>{fmtRp(val)}</span>
+                            <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,.7)"}}>{kat}</span>
+                            <span style={{fontSize:12,fontFamily:inherit,color:"rgba(255,255,255,.3)"}}>{fmtRp(val)}</span>
                           </div>
                           <div className="cat-bar-bg"><div className="cat-bar-fill" style={{width:`${pct}%`}}/></div>
                         </div>
-                        <span style={{fontSize:11,color:"#555",fontFamily:"DM Mono",width:30,textAlign:"right"}}>{pct}%</span>
+                        <span style={{fontSize:11,color:"rgba(255,255,255,.3)",fontFamily:inherit,width:30,textAlign:"right"}}>{pct}%</span>
                       </div>
                     );
                   })}
@@ -803,15 +817,15 @@ input[type=number]{-moz-appearance:textfield;}
                   ? <div className="empty"><div className="empty-icon">📭</div><div className="empty-text">Belum ada transaksi</div><div className="empty-sub">di {monthLabel(dashMonth)}</div></div>
                   : dashData.txs.map(t=>(
                     <div key={t.id} className="tx-item">
-                      <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
+                      <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"rgba(52,199,89,.12)":"rgba(255,59,48,.1)"}}>{EMOJI[t.kategori]}</div>
                       <div className="tx-info">
                         <div className="tx-desc">{t.deskripsi}</div>
                         <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
-                        <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
+                        <span className="who-badge" style={{background:t.addedBy===myName?"rgba(255,255,255,.08)":"rgba(175,82,222,.12)",color:t.addedBy===myName?"#fff":"#af52de"}}>
                           {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
                         </span>
                       </div>
-                      <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
+                      <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#34c759":"#ff3b30"}}>
                         {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
                       </div>
                     </div>
@@ -858,23 +872,23 @@ input[type=number]{-moz-appearance:textfield;}
                 {/* Search bar */}
                 <div style={{position:"relative",marginBottom:14}}>
                   <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,opacity:.4}}>🔍</span>
-                  <input style={{width:"100%",background:"#13131c",border:"1.5px solid #1e1e2e",borderRadius:14,padding:"12px 16px 12px 40px",color:"#f0f0f8",fontFamily:"inherit",fontSize:14,outline:"none",WebkitAppearance:"none"}}
+                  <input style={{width:"100%",background:"#111",border:".5px solid rgba(255,255,255,.1)",borderRadius:14,padding:"12px 16px 12px 40px",color:"#fff",fontFamily:"inherit",fontSize:14,outline:"none",WebkitAppearance:"none"}}
                     placeholder="Cari transaksi, kategori, nama..."
                     value={search} onChange={e=>setSearch(e.target.value)}/>
                   {search && <button onClick={()=>setSearch("")}
-                    style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#555",cursor:"pointer",fontSize:20,lineHeight:1}}>×</button>}
+                    style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"rgba(255,255,255,.3)",cursor:"pointer",fontSize:20,lineHeight:1}}>×</button>}
                 </div>
 
                 {/* Month pills — hide while searching */}
                 {!isSearching && (
                   <div style={{display:"flex",gap:8,overflowX:"auto",margin:"0 -20px",padding:"0 20px 14px",scrollbarWidth:"none"}}>
                     <div onClick={()=>setFilterMonth("")}
-                      style={{flexShrink:0,background:filterMonth===""?"#7c5cfc22":"#13131c",border:`1px solid ${filterMonth===""?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===""?"#c4a8ff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
+                      style={{flexShrink:0,background:filterMonth===""?"rgba(255,255,255,.1)":"#111",border:`1px solid ${filterMonth===""?"rgba(255,255,255,.8)":"rgba(255,255,255,.08)"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===""?"#fff":"rgba(255,255,255,.3)",cursor:"pointer",whiteSpace:"nowrap"}}>
                       3 bln terakhir
                     </div>
                     {allMonths.filter(m=>m>=THREE_MONTHS_AGO).map((m,i)=>(
                       <div key={m} onClick={()=>setFilterMonth(m)}
-                        style={{flexShrink:0,background:filterMonth===m?"#7c5cfc22":"#13131c",border:`1px solid ${filterMonth===m?"#7c5cfc":"#1e1e2e"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===m?"#c4a8ff":i===0?"#3a8eff":"#555",cursor:"pointer",whiteSpace:"nowrap"}}>
+                        style={{flexShrink:0,background:filterMonth===m?"rgba(255,255,255,.1)":"#111",border:`1px solid ${filterMonth===m?"rgba(255,255,255,.8)":"rgba(255,255,255,.08)"}`,borderRadius:999,padding:"7px 14px",fontSize:12,fontWeight:700,color:filterMonth===m?"#fff":i===0?"#0a84ff":"rgba(255,255,255,.3)",cursor:"pointer",whiteSpace:"nowrap"}}>
                         {i===0?"Bulan ini":monthLabel(m)}
                       </div>
                     ))}
@@ -890,12 +904,12 @@ input[type=number]{-moz-appearance:textfield;}
 
                 {/* Summary strip */}
                 <div style={{display:"flex",gap:10,marginBottom:16}}>
-                  {[["#4ade80","Pemasukan",histPemasukan],["#f87171","Pengeluaran",histPengeluaran]].map(([c,label,val])=>(
-                    <div key={label} style={{flex:1,background:"#13131c",borderRadius:14,border:"1px solid #1e1e2e",padding:"10px 12px"}}>
-                      <div style={{fontSize:10,color:"#555",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,display:"flex",alignItems:"center",gap:4}}>
+                  {[["#34c759","Pemasukan",histPemasukan],["#ff3b30","Pengeluaran",histPengeluaran]].map(([c,label,val])=>(
+                    <div key={label} style={{flex:1,background:"#111",borderRadius:14,border:".5px solid rgba(255,255,255,.08)",padding:"10px 12px"}}>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,.3)",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,display:"flex",alignItems:"center",gap:4}}>
                         <div style={{width:6,height:6,borderRadius:"50%",background:c}}/>{label}
                       </div>
-                      <div style={{fontSize:13,fontWeight:700,fontFamily:"DM Mono,monospace",color:c,marginTop:3}}>{fmtRp(val)}</div>
+                      <div style={{fontSize:13,fontWeight:700,fontFamily:"inherit",color:c,marginTop:3}}>{fmtRp(val)}</div>
                     </div>
                   ))}
                 </div>
@@ -903,18 +917,18 @@ input[type=number]{-moz-appearance:textfield;}
                 {/* Old data banner */}
                 {!isSearching && !showOld && oldTxCount > 0 && (
                   <div onClick={()=>setShowOld(true)}
-                    style={{display:"flex",alignItems:"center",gap:10,background:"#13131c",border:"1px solid #1e1e2e",borderRadius:14,padding:"12px 14px",marginBottom:14,cursor:"pointer"}}>
+                    style={{display:"flex",alignItems:"center",gap:10,background:"#111",border:".5px solid rgba(255,255,255,.08)",borderRadius:14,padding:"12px 14px",marginBottom:14,cursor:"pointer"}}>
                     <span style={{fontSize:18}}>🗂️</span>
-                    <div style={{flex:1,fontSize:12,color:"#555",fontWeight:600}}>
+                    <div style={{flex:1,fontSize:12,color:"rgba(255,255,255,.3)",fontWeight:600}}>
                       Ada {oldTxCount} transaksi tersembunyi {oldMonthMin ? `dari ${monthLabel(oldMonthMin)}` : ""}
                     </div>
-                    <span style={{fontSize:11,color:"#7c5cfc",fontWeight:700}}>Tampilkan →</span>
+                    <span style={{fontSize:11,color:"rgba(255,255,255,.8)",fontWeight:700}}>Tampilkan →</span>
                   </div>
                 )}
 
                 {/* Search info */}
                 {isSearching && (
-                  <div style={{fontSize:12,color:"#555",marginBottom:12,fontWeight:600}}>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,.3)",marginBottom:12,fontWeight:600}}>
                     🔍 Mencari di semua transaksi termasuk yang lama...
                   </div>
                 )}
@@ -924,21 +938,21 @@ input[type=number]{-moz-appearance:textfield;}
                   ? <div className="empty"><div className="empty-icon">🔍</div><div className="empty-text">Tidak ada hasil</div><div className="empty-sub">Coba kata kunci atau filter lain</div></div>
                   : histGrouped.map(([monthKey, txs]) => (
                     <div key={monthKey}>
-                      <div style={{fontSize:11,fontWeight:700,color:"#333",textTransform:"uppercase",letterSpacing:1,padding:"16px 0 8px"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,.2)",textTransform:"uppercase",letterSpacing:1,padding:"16px 0 8px"}}>
                         {monthLabel(monthKey)} · {txs.length} transaksi
                       </div>
                       {txs.map(t=>(
                         <div key={t.id} className="tx-item">
-                          <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"#0d1f0d":"#1a0d1a"}}>{EMOJI[t.kategori]}</div>
+                          <div className="tx-icon" style={{background:t.jenis==="Pemasukan"?"rgba(52,199,89,.12)":"rgba(255,59,48,.1)"}}>{EMOJI[t.kategori]}</div>
                           <div className="tx-info">
                             <div className="tx-desc">{t.deskripsi}</div>
                             <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
-                            <span className="who-badge" style={{background:t.addedBy===myName?"#1e1e3a":"#1a0d2a",color:t.addedBy===myName?"#8888ff":"#c084fc"}}>
+                            <span className="who-badge" style={{background:t.addedBy===myName?"rgba(255,255,255,.08)":"rgba(175,82,222,.12)",color:t.addedBy===myName?"#fff":"#af52de"}}>
                               {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
                             </span>
                           </div>
                           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-                            <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#4ade80":"#f87171"}}>
+                            <div className="tx-amount" style={{color:t.jenis==="Pemasukan"?"#34c759":"#ff3b30"}}>
                               {t.jenis==="Pemasukan"?"+":"-"}{fmtRp(t.nominal)}
                             </div>
                             <div style={{display:"flex",gap:6}}>
@@ -959,7 +973,7 @@ input[type=number]{-moz-appearance:textfield;}
                 {showOld && !isSearching && (
                   <div style={{textAlign:"center",padding:"16px 0"}}>
                     <button onClick={()=>setShowOld(false)}
-                      style={{background:"none",border:"1px solid #1e1e2e",borderRadius:999,padding:"8px 20px",color:"#444",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                      style={{background:"none",border:".5px solid rgba(255,255,255,.08)",borderRadius:999,padding:"8px 20px",color:"rgba(255,255,255,.25)",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                       Sembunyikan transaksi lama
                     </button>
                   </div>
@@ -977,12 +991,12 @@ input[type=number]{-moz-appearance:textfield;}
                   {["Temen","Input","Assign","Ringkasan"].map((s,i) => (
                     <div key={s} style={{display:"flex",alignItems:"center",gap:6,flex:i<3?1:"none"}}>
                       <div style={{width:24,height:24,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0,
-                        background:i<sbStep?"#7c5cfc":"#1e1e2e",
-                        border:i===sbStep?"2px solid #7c5cfc":"none",
-                        color:i<sbStep?"white":i===sbStep?"#c4a8ff":"#444"}}>
+                        background:i<sbStep?"#fff":"rgba(255,255,255,.08)",
+                        border:i===sbStep?"1.5px solid rgba(255,255,255,.6)":"none",
+                        color:i<sbStep?"#000":i===sbStep?"#fff":"rgba(255,255,255,.25)"}}>
                         {i<sbStep?"✓":i+1}
                       </div>
-                      {i<3&&<div style={{flex:1,height:2,background:i<sbStep?"#7c5cfc":"#1e1e2e",borderRadius:999}}/>}
+                      {i<3&&<div style={{flex:1,height:2,background:i<sbStep?"#fff":"rgba(255,255,255,.08)",borderRadius:999}}/>}
                     </div>
                   ))}
                 </div>
@@ -994,10 +1008,10 @@ input[type=number]{-moz-appearance:textfield;}
                     <input className="inp" style={{margin:0,flex:1}} placeholder="Nama temen..." value={sbFriendInput}
                       onChange={e=>setSbFriendInput(e.target.value)}
                       onKeyDown={e=>e.key==="Enter"&&sbAddFriend()}/>
-                    <button onClick={sbAddFriend} style={{padding:"12px 16px",borderRadius:14,border:"none",background:"#7c5cfc",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Tambah</button>
+                    <button onClick={sbAddFriend} style={{padding:"12px 16px",borderRadius:14,border:"none",background:"rgba(255,255,255,.8)",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Tambah</button>
                   </div>
                   <div style={{marginBottom:20}}>
-                    {sbFriends.length===0 && <div style={{fontSize:13,color:"#444",marginBottom:12}}>Belum ada temen yang ditambah</div>}
+                    {sbFriends.length===0 && <div style={{fontSize:13,color:"rgba(255,255,255,.25)",marginBottom:12}}>Belum ada temen yang ditambah</div>}
                     {["Gue","Pasangan",...sbFriends].map((f,i) => {
                       const c = sbGetColor(f);
                       return (
@@ -1008,7 +1022,7 @@ input[type=number]{-moz-appearance:textfield;}
                       );
                     })}
                   </div>
-                  <button onClick={()=>setSbStep(1)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                  <button onClick={()=>setSbStep(1)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
                     Lanjut → Pilih Input ›
                   </button>
                 </>}
@@ -1018,51 +1032,51 @@ input[type=number]{-moz-appearance:textfield;}
                   <div className="sec-title">Mau input gimana?</div>
                   <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:16}}>
                     <div onClick={()=>setSbInputMode("scan")}
-                      style={{background:"#13131c",border:"1.5px solid #1e1e2e",borderRadius:20,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:16}}>
-                      <div style={{width:52,height:52,borderRadius:16,background:"#7c5cfc22",border:"1px solid #7c5cfc44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>📷</div>
+                      style={{background:"#111",border:".5px solid rgba(255,255,255,.1)",borderRadius:20,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:16}}>
+                      <div style={{width:52,height:52,borderRadius:16,background:"rgba(255,255,255,.1)",border:".5px solid rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>📷</div>
                       <div style={{flex:1}}>
-                        <div style={{fontSize:15,fontWeight:700,color:"#f0f0f8",marginBottom:3}}>Foto Struk</div>
-                        <div style={{fontSize:12,color:"#555",lineHeight:1.4}}>AI baca struk otomatis, item langsung muncul</div>
+                        <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:3}}>Foto Struk</div>
+                        <div style={{fontSize:12,color:"rgba(255,255,255,.3)",lineHeight:1.4}}>AI baca struk otomatis, item langsung muncul</div>
                       </div>
-                      <div style={{fontSize:20,color:"#444"}}>›</div>
+                      <div style={{fontSize:20,color:"rgba(255,255,255,.25)"}}>›</div>
                     </div>
                     <div onClick={()=>setSbInputMode("manual")}
-                      style={{background:"#13131c",border:"1.5px solid #1e1e2e",borderRadius:20,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:16}}>
-                      <div style={{width:52,height:52,borderRadius:16,background:"#1e1e2e",border:"1px solid #2a2a3a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>✏️</div>
+                      style={{background:"#111",border:".5px solid rgba(255,255,255,.1)",borderRadius:20,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:16}}>
+                      <div style={{width:52,height:52,borderRadius:16,background:"rgba(255,255,255,.08)",border:"1px solid #2a2a3a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>✏️</div>
                       <div style={{flex:1}}>
-                        <div style={{fontSize:15,fontWeight:700,color:"#f0f0f8",marginBottom:3}}>Input Manual</div>
-                        <div style={{fontSize:12,color:"#555",lineHeight:1.4}}>Ketik sendiri nama item dan harganya</div>
+                        <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:3}}>Input Manual</div>
+                        <div style={{fontSize:12,color:"rgba(255,255,255,.3)",lineHeight:1.4}}>Ketik sendiri nama item dan harganya</div>
                       </div>
-                      <div style={{fontSize:20,color:"#444"}}>›</div>
+                      <div style={{fontSize:20,color:"rgba(255,255,255,.25)"}}>›</div>
                     </div>
                   </div>
-                  <button onClick={()=>setSbStep(0)} style={{width:"100%",padding:12,borderRadius:14,border:"1px solid #2a2a3a",background:"#1e1e2e",color:"#888",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                  <button onClick={()=>setSbStep(0)} style={{width:"100%",padding:12,borderRadius:14,border:"1px solid #2a2a3a",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.4)",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer"}}>
                     ← Kembali
                   </button>
                 </>}
 
                 {/* ── STEP 1: Scan mode ── */}
                 {sbStep===1 && sbInputMode==="scan" && <>
-                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"#7c5cfc",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
+                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"rgba(255,255,255,.8)",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
                   <div className="sec-title">Foto struk belanja lo</div>
                   <input ref={sbFileRef} type="file" accept="image/*" capture="environment" style={{display:"none"}}
                     onChange={e=>{ if(e.target.files[0]) sbScanReceipt(e.target.files[0]); e.target.value=""; }}/>
                   <div onClick={()=>!sbScanning&&sbFileRef.current.click()}
-                    style={{background:"#13131c",border:`1.5px ${sbScanning?"solid":"dashed"} ${sbScanning?"#7c5cfc":"#2a2a3a"}`,borderRadius:20,padding:32,marginBottom:16,textAlign:"center",cursor:sbScanning?"default":"pointer"}}>
+                    style={{background:"#111",border:`1.5px ${sbScanning?"solid":"dashed"} ${sbScanning?"rgba(255,255,255,.8)":"rgba(255,255,255,.1)"}`,borderRadius:20,padding:32,marginBottom:16,textAlign:"center",cursor:sbScanning?"default":"pointer"}}>
                     {sbScanning ? (
                       <>
                         <div style={{fontSize:44,marginBottom:12}}>⏳</div>
-                        <div style={{fontSize:14,fontWeight:700,color:"#888"}}>Lagi baca struk...</div>
-                        <div style={{fontSize:12,color:"#444",marginTop:4}}>AI lagi deteksi item & harga</div>
-                        <div style={{background:"#1e1e2e",borderRadius:999,height:4,margin:"14px 0"}}>
-                          <div style={{width:`${sbScanProgress}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,#7c5cfc,#3a8eff)",transition:"width .3s"}}/>
+                        <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.4)"}}>Lagi baca struk...</div>
+                        <div style={{fontSize:12,color:"rgba(255,255,255,.25)",marginTop:4}}>AI lagi deteksi item & harga</div>
+                        <div style={{background:"rgba(255,255,255,.08)",borderRadius:999,height:4,margin:"14px 0"}}>
+                          <div style={{width:`${sbScanProgress}%`,height:"100%",borderRadius:999,background:"#fff",transition:"width .3s"}}/>
                         </div>
                       </>
                     ) : (
                       <>
                         <div style={{fontSize:44,marginBottom:12}}>📷</div>
-                        <div style={{fontSize:14,fontWeight:700,color:"#888"}}>Tap untuk foto struk</div>
-                        <div style={{fontSize:12,color:"#444",marginTop:4}}>atau pilih dari galeri</div>
+                        <div style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,.4)"}}>Tap untuk foto struk</div>
+                        <div style={{fontSize:12,color:"rgba(255,255,255,.25)",marginTop:4}}>atau pilih dari galeri</div>
                       </>
                     )}
                   </div>
@@ -1070,9 +1084,9 @@ input[type=number]{-moz-appearance:textfield;}
 
                 {/* ── STEP 1: Manual mode ── */}
                 {sbStep===1 && sbInputMode==="manual" && <>
-                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"#7c5cfc",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
+                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"rgba(255,255,255,.8)",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
                   <div className="sec-title">Tambah pesanan</div>
-                  <div style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:16,marginBottom:12}}>
+                  <div style={{background:"#111",borderRadius:20,border:".5px solid rgba(255,255,255,.08)",padding:16,marginBottom:12}}>
                     <div className="field-label">Nama item</div>
                     <input className="inp" placeholder="Contoh: Kopi Susu..." value={sbItemName} onChange={e=>setSbItemName(e.target.value)}/>
                     <div className="field-label">Harga (Rp)</div>
@@ -1083,29 +1097,29 @@ input[type=number]{-moz-appearance:textfield;}
                       {sbAllPeople.map(p => {
                         const c=sbGetColor(p); const sel=sbSelectedFor.includes(p);
                         return <span key={p} onClick={()=>setSbSelectedFor(s=>s.includes(p)?s.filter(x=>x!==p):[...s,p])}
-                          style={{display:"inline-flex",alignItems:"center",background:sel?c.bg:"#1e1e2e",border:`1px solid ${sel?c.color:"#2a2a3a"}`,borderRadius:999,padding:"6px 14px",fontSize:12,fontWeight:700,color:sel?c.color:"#666",marginRight:6,marginBottom:6,cursor:"pointer"}}>{p}</span>;
+                          style={{display:"inline-flex",alignItems:"center",background:sel?c.bg:"rgba(255,255,255,.08)",border:`1px solid ${sel?c.color:"rgba(255,255,255,.1)"}`,borderRadius:999,padding:"6px 14px",fontSize:12,fontWeight:700,color:sel?c.color:"rgba(255,255,255,.3)",marginRight:6,marginBottom:6,cursor:"pointer"}}>{p}</span>;
                       })}
                     </div>
-                    <button onClick={sbAddItem} style={{width:"100%",padding:13,borderRadius:14,border:"none",background:"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>
+                    <button onClick={sbAddItem} style={{width:"100%",padding:13,borderRadius:14,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>
                       + Tambah Item
                     </button>
                   </div>
                   {sbItems.length>0 && <>
-                    <div style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:"4px 16px",marginBottom:12}}>
+                    <div style={{background:"#111",borderRadius:20,border:".5px solid rgba(255,255,255,.08)",padding:"4px 16px",marginBottom:12}}>
                       {sbItems.map(item=>(
-                        <div key={item.id} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 0",borderBottom:"1px solid #0d0d14"}}>
+                        <div key={item.id} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 0",borderBottom:".5px solid rgba(255,255,255,.04)"}}>
                           <div style={{flex:1,minWidth:0}}>
-                            <div style={{fontSize:14,fontWeight:600,color:"#f0f0f8"}}>{item.name}</div>
+                            <div style={{fontSize:14,fontWeight:600,color:"#fff"}}>{item.name}</div>
                             <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:4}}>
                               {(item.for||[]).map(p=>{ const c=sbGetColor(p); return <span key={p} style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:999,background:c.bg,color:c.color}}>{p}</span>; })}
                             </div>
                           </div>
-                          <div style={{fontSize:14,fontWeight:700,fontFamily:"'DM Mono',monospace",color:"#f0f0f8",flexShrink:0}}>{"Rp "+item.price.toLocaleString("id-ID")}</div>
+                          <div style={{fontSize:14,fontWeight:700,fontFamily:"inherit",color:"#fff",flexShrink:0}}>{"Rp "+item.price.toLocaleString("id-ID")}</div>
                           <button onClick={()=>setSbItems(its=>its.filter(x=>x.id!==item.id))} style={{background:"none",border:"none",cursor:"pointer",fontSize:14,opacity:.4,padding:4}}>🗑️</button>
                         </div>
                       ))}
                     </div>
-                    <button onClick={()=>setSbStep(3)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                    <button onClick={()=>setSbStep(3)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
                       Lanjut → Ringkasan 📊
                     </button>
                   </>}
@@ -1115,27 +1129,27 @@ input[type=number]{-moz-appearance:textfield;}
                 {sbStep===2 && <>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                     <div className="sec-title" style={{margin:0}}>Siapa punya item ini?</div>
-                    {sbUnassigned>0 && <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:999,background:"#1f0d0d",border:"1px solid #4a2a2a",color:"#f87171"}}>{sbUnassigned} belum</span>}
+                    {sbUnassigned>0 && <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:999,background:"rgba(255,59,48,.1)",border:"1px solid #4a2a2a",color:"#ff3b30"}}>{sbUnassigned} belum</span>}
                   </div>
                   <div style={{marginBottom:12,display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
-                    <span style={{fontSize:11,color:"#555",fontWeight:600}}>Tap nama di tiap item:</span>
+                    <span style={{fontSize:11,color:"rgba(255,255,255,.3)",fontWeight:600}}>Tap nama di tiap item:</span>
                     {sbAllPeople.map(p=>{ const c=sbGetColor(p); return <span key={p} style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:999,background:c.bg,color:c.color}}>{p}</span>; })}
                   </div>
-                  <div style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:"4px 16px",marginBottom:12}}>
+                  <div style={{background:"#111",borderRadius:20,border:".5px solid rgba(255,255,255,.08)",padding:"4px 16px",marginBottom:12}}>
                     {sbItems.map(item => {
                       const itemAssigned = sbAssigned[item.id]||[];
                       return (
-                        <div key={item.id} style={{padding:"14px 0",borderBottom:"1px solid #0d0d14"}}>
+                        <div key={item.id} style={{padding:"14px 0",borderBottom:".5px solid rgba(255,255,255,.04)"}}>
                           <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-                            <div style={{fontSize:14,fontWeight:600,color:"#f0f0f8"}}>{item.name}</div>
-                            <div style={{fontSize:14,fontWeight:700,fontFamily:"DM Mono,monospace",color:"#f0f0f8",flexShrink:0,marginLeft:8}}>{"Rp "+item.price.toLocaleString("id-ID")}</div>
+                            <div style={{fontSize:14,fontWeight:600,color:"#fff"}}>{item.name}</div>
+                            <div style={{fontSize:14,fontWeight:700,fontFamily:"inherit",color:"#fff",flexShrink:0,marginLeft:8}}>{"Rp "+item.price.toLocaleString("id-ID")}</div>
                           </div>
                           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                             {sbAllPeople.map(p => {
                               const c=sbGetColor(p); const sel=itemAssigned.includes(p);
                               return (
                                 <span key={p} onClick={()=>sbToggleAssign(item.id,p)}
-                                  style={{padding:"5px 12px",borderRadius:999,fontSize:11,fontWeight:700,cursor:"pointer",background:sel?c.bg:"#0d0d14",border:`1.5px solid ${sel?c.color:"#1e1e2e"}`,color:sel?c.color:"#555"}}>
+                                  style={{padding:"5px 12px",borderRadius:999,fontSize:11,fontWeight:700,cursor:"pointer",background:sel?c.bg:"rgba(255,255,255,.04)",border:`1.5px solid ${sel?c.color:"rgba(255,255,255,.08)"}`,color:sel?c.color:"rgba(255,255,255,.3)"}}>
                                   {p}{itemAssigned.length>1&&sel?` (${fmtRp(item.price/itemAssigned.length)})`:""}</span>
                               );
                             })}
@@ -1145,7 +1159,7 @@ input[type=number]{-moz-appearance:textfield;}
                     })}
                   </div>
                   <button onClick={()=>setSbStep(3)} disabled={sbUnassigned>0}
-                    style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:"white",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:sbUnassigned>0?"not-allowed":"pointer",opacity:sbUnassigned>0?.5:1,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                    style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:sbUnassigned>0?"not-allowed":"pointer",opacity:sbUnassigned>0?.35:1,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
                     {sbUnassigned>0?`${sbUnassigned} item belum ditandai`:"Lanjut → Ringkasan 📊"}
                   </button>
                 </>}
@@ -1153,39 +1167,39 @@ input[type=number]{-moz-appearance:textfield;}
                 {/* ── STEP 3: Summary ── */}
                 {sbStep===3 && <>
                   <div className="sec-title">Ringkasan tagihan</div>
-                  <div style={{background:"#13131c",border:"1px solid #1e1e2e",borderRadius:16,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:12,color:"#666",fontWeight:600}}>Total struk</span>
-                    <span style={{fontSize:16,fontWeight:700,fontFamily:"DM Mono,monospace",color:"#f0f0f8"}}>{"Rp "+sbItems.reduce((s,i)=>s+i.price,0).toLocaleString("id-ID")}</span>
+                  <div style={{background:"#111",border:".5px solid rgba(255,255,255,.08)",borderRadius:16,padding:"12px 16px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:12,color:"rgba(255,255,255,.3)",fontWeight:600}}>Total struk</span>
+                    <span style={{fontSize:16,fontWeight:700,fontFamily:"inherit",color:"#fff"}}>{"Rp "+sbItems.reduce((s,i)=>s+i.price,0).toLocaleString("id-ID")}</span>
                   </div>
-                  <div style={{background:"linear-gradient(135deg,#1a1040,#0e1a3a)",borderRadius:20,border:"1px solid #2a2060",padding:16,marginBottom:12}}>
-                    <div style={{fontSize:11,color:"#8888aa",textTransform:"uppercase",letterSpacing:1,fontWeight:600,marginBottom:4}}>💑 Gue &amp; Pasangan</div>
-                    <div style={{fontSize:28,fontWeight:700,fontFamily:"DM Mono,monospace",color:"#c4a8ff",marginBottom:4}}>{"Rp "+Math.round(sbMyTotal).toLocaleString("id-ID")}</div>
-                    <div style={{fontSize:11,color:"#555",marginBottom:12}}>Total yang harus lo berdua bayar</div>
+                  <div style={{background:"#111",borderRadius:20,border:".5px solid rgba(255,255,255,.1)",padding:16,marginBottom:12}}>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,.35)",textTransform:"uppercase",letterSpacing:1,fontWeight:600,marginBottom:4}}>💑 Gue &amp; Pasangan</div>
+                    <div style={{fontSize:28,fontWeight:700,fontFamily:"inherit",color:"#fff",marginBottom:4}}>{"Rp "+Math.round(sbMyTotal).toLocaleString("id-ID")}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,.3)",marginBottom:12}}>Total yang harus lo berdua bayar</div>
                     <button onClick={sbExportToFinance} disabled={sbExported}
-                      style={{width:"100%",padding:13,borderRadius:14,border:"none",background:sbExported?"#1e1e2e":"linear-gradient(135deg,#7c5cfc,#3a8eff)",color:sbExported?"#555":"white",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:sbExported?"default":"pointer"}}>
+                      style={{width:"100%",padding:13,borderRadius:14,border:"none",background:sbExported?"rgba(255,255,255,.08)":"#fff",color:sbExported?"rgba(255,255,255,.3)":"white",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:sbExported?"default":"pointer"}}>
                       {sbExported?"✅ Sudah dicatat ke Finance Tracker":"📥 Catat ke Finance Tracker"}
                     </button>
                   </div>
                   {sbFriends.filter(f=>sbTotals[f]>0).map(f => {
                     const c=sbGetColor(f); const paid=sbPaidMap[f];
                     return (
-                      <div key={f} style={{background:"#13131c",borderRadius:20,border:"1px solid #1e1e2e",padding:16,marginBottom:12}}>
+                      <div key={f} style={{background:"#111",borderRadius:20,border:".5px solid rgba(255,255,255,.08)",padding:16,marginBottom:12}}>
                         <div style={{fontSize:11,color:c.color,textTransform:"uppercase",letterSpacing:1,fontWeight:600,marginBottom:4}}>👤 {f}</div>
-                        <div style={{fontSize:28,fontWeight:700,fontFamily:"DM Mono,monospace",color:c.color,marginBottom:4}}>{"Rp "+Math.round(sbTotals[f]).toLocaleString("id-ID")}</div>
-                        <div style={{fontSize:11,color:"#555",marginBottom:8}}>Harus bayar ke lo</div>
+                        <div style={{fontSize:28,fontWeight:700,fontFamily:"inherit",color:c.color,marginBottom:4}}>{"Rp "+Math.round(sbTotals[f]).toLocaleString("id-ID")}</div>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,.3)",marginBottom:8}}>Harus bayar ke lo</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:999,background:paid?"#0d1f0d":"#1f0d0d",border:`1px solid ${paid?"#2a4a2a":"#4a2a2a"}`,color:paid?"#4ade80":"#f87171"}}>
+                          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:999,background:paid?"rgba(52,199,89,.12)":"rgba(255,59,48,.1)",border:`1px solid ${paid?"rgba(52,199,89,.3)":"rgba(255,59,48,.25)"}`,color:paid?"#34c759":"#ff3b30"}}>
                             {paid?"✅ Udah bayar":"⏳ Belum bayar"}
                           </span>
                           <button onClick={()=>setSbPaidMap(m=>({...m,[f]:!m[f]}))}
-                            style={{background:"none",border:"none",fontSize:12,fontWeight:700,color:paid?"#f87171":"#4ade80",cursor:"pointer",fontFamily:"inherit"}}>
+                            style={{background:"none",border:"none",fontSize:12,fontWeight:700,color:paid?"#ff3b30":"#34c759",cursor:"pointer",fontFamily:"inherit"}}>
                             {paid?"Tandai belum":"Tandai lunas"}
                           </button>
                         </div>
                       </div>
                     );
                   })}
-                  <button onClick={sbReset} style={{width:"100%",padding:13,borderRadius:14,border:"1px solid #2a2a3a",background:"#1e1e2e",color:"#888",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8}}>
+                  <button onClick={sbReset} style={{width:"100%",padding:13,borderRadius:14,border:"1px solid #2a2a3a",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.4)",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8}}>
                     🔄 Reset &amp; Mulai Sesi Baru
                   </button>
                 </>}
@@ -1203,10 +1217,10 @@ input[type=number]{-moz-appearance:textfield;}
                   <div className="modal-sub">Hanya lo yang bisa edit transaksi ini</div>
 
                   {/* Jenis toggle */}
-                  <div style={{display:"flex",background:"#0d0d14",borderRadius:14,padding:4,marginBottom:16,border:"1px solid #1e1e2e"}}>
-                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pemasukan"?"#0d1f0d":"none",color:editTx.jenis==="Pemasukan"?"#4ade80":"#444"}}
+                  <div style={{display:"flex",background:"rgba(255,255,255,.04)",borderRadius:14,padding:4,marginBottom:16,border:".5px solid rgba(255,255,255,.08)"}}>
+                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pemasukan"?"rgba(52,199,89,.12)":"none",color:editTx.jenis==="Pemasukan"?"#34c759":"rgba(255,255,255,.25)"}}
                       onClick={()=>setEditTx(e=>({...e,jenis:"Pemasukan",kategori:"Gaji"}))}>⬆ Pemasukan</button>
-                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pengeluaran"?"#1f0d0d":"none",color:editTx.jenis==="Pengeluaran"?"#f87171":"#444"}}
+                    <button style={{flex:1,padding:10,borderRadius:10,border:"none",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",transition:"all .2s",background:editTx.jenis==="Pengeluaran"?"rgba(255,59,48,.1)":"none",color:editTx.jenis==="Pengeluaran"?"#ff3b30":"rgba(255,255,255,.25)"}}
                       onClick={()=>setEditTx(e=>({...e,jenis:"Pengeluaran",kategori:"Makan"}))}>⬇ Pengeluaran</button>
                   </div>
 
@@ -1227,7 +1241,7 @@ input[type=number]{-moz-appearance:textfield;}
                     {KATEGORI[editTx.jenis].map(k=>(
                       <div key={k}
                         onClick={()=>setEditTx(t=>({...t,kategori:k}))}
-                        style={{background:editTx.kategori===k?"#7c5cfc1a":"#0d0d14",border:`1.5px solid ${editTx.kategori===k?"#7c5cfc":"#1e1e2e"}`,borderRadius:12,padding:"10px 6px",textAlign:"center",fontSize:11,fontWeight:700,color:editTx.kategori===k?"#c4a8ff":"#666",cursor:"pointer",lineHeight:1.4}}>
+                        style={{background:editTx.kategori===k?"rgba(255,255,255,.08)":"rgba(255,255,255,.04)",border:`1.5px solid ${editTx.kategori===k?"rgba(255,255,255,.8)":"rgba(255,255,255,.08)"}`,borderRadius:12,padding:"10px 6px",textAlign:"center",fontSize:11,fontWeight:700,color:editTx.kategori===k?"#fff":"rgba(255,255,255,.3)",cursor:"pointer",lineHeight:1.4}}>
                         <div style={{fontSize:22,marginBottom:4}}>{EMOJI[k]}</div>{k}
                       </div>
                     ))}
@@ -1252,11 +1266,11 @@ input[type=number]{-moz-appearance:textfield;}
                 <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
                   <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📊</div>
                   <div className="modal-title">Data Excel ditemukan!</div>
-                  <div className="modal-sub">Gua nemu <b style={{color:"#f0f0f8"}}>{importModal.count} transaksi</b> di file Excel lo. Mau diimport semuanya ke app?</div>
-                  <div style={{background:"#0d0d14",borderRadius:16,padding:"14px 16px",marginBottom:16,border:"1px solid #1e1e2e"}}>
+                  <div className="modal-sub">Gua nemu <b style={{color:"#fff"}}>{importModal.count} transaksi</b> di file Excel lo. Mau diimport semuanya ke app?</div>
+                  <div style={{background:"rgba(255,255,255,.04)",borderRadius:16,padding:"14px 16px",marginBottom:16,border:".5px solid rgba(255,255,255,.08)"}}>
                     {["Data lama dari Excel masuk ke riwayat app","Data yang udah ada di app tetap aman","Ga perlu input ulang dari awal 🎉"].map((text,i)=>(
                       <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
-                        <span>✅</span><span style={{fontSize:13,color:"#888",lineHeight:1.4}}>{text}</span>
+                        <span>✅</span><span style={{fontSize:13,color:"rgba(255,255,255,.4)",lineHeight:1.4}}>{text}</span>
                       </div>
                     ))}
                   </div>
@@ -1276,11 +1290,11 @@ input[type=number]{-moz-appearance:textfield;}
                 <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
                   <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📥</div>
                   <div className="modal-title">Export berhasil!</div>
-                  <div className="modal-sub">File <b style={{color:"#f0f0f8"}}>{templateName||"Finance_Tracker_Pro.xlsx"}</b> udah ke-download dengan semua transaksi terbaru 🎉</div>
-                  <div style={{background:"#0d0d14",borderRadius:16,padding:"14px 16px",marginBottom:16,border:"1px solid #1e1e2e"}}>
+                  <div className="modal-sub">File <b style={{color:"#fff"}}>{templateName||"Finance_Tracker_Pro.xlsx"}</b> udah ke-download dengan semua transaksi terbaru 🎉</div>
+                  <div style={{background:"rgba(255,255,255,.04)",borderRadius:16,padding:"14px 16px",marginBottom:16,border:".5px solid rgba(255,255,255,.08)"}}>
                     {["Data masuk ke sheet bulan yang sesuai","Summary & Dashboard otomatis ke-update","File siap dibuka di Excel / Google Sheets"].map((text,i)=>(
                       <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
-                        <span>✅</span><span style={{fontSize:13,color:"#888",lineHeight:1.4}}>{text}</span>
+                        <span>✅</span><span style={{fontSize:13,color:"rgba(255,255,255,.4)",lineHeight:1.4}}>{text}</span>
                       </div>
                     ))}
                   </div>
