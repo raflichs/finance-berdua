@@ -283,31 +283,33 @@ input[type=number]{-moz-appearance:textfield;}
         setupNotif(myName);
 
         const txRef = db.ref(`${DB_PATH}/transactions`);
-        const unsubTx = txRef.on("value", snap => {
+        const txListener = (snap) => {
           if (writingRef.current) return;
           const data = snap.val();
           const list = data ? Object.values(data).sort((a,b) => b.id-a.id) : [];
           txsRef.current = list;
           setTransactions(list);
           setOnline(true);
-        }, () => setOnline(false));
+        };
+        txRef.on("value", txListener, () => setOnline(false));
 
         const sendHB = () => db.ref(`${DB_PATH}/heartbeats/${myName}`).set(Date.now()).catch(()=>{});
         sendHB();
         const hbInt = setInterval(sendHB, 5000);
 
         const hbRef = db.ref(`${DB_PATH}/heartbeats`);
-        const unsubHB = hbRef.on("value", snap => {
+        const hbListener = (snap) => {
           const hbs = snap.val() || {};
           const now = Date.now();
           const partners = Object.entries(hbs).filter(([n,ts]) => n !== myName && (now-ts) < 12000);
           setPartnerOnline(partners.length > 0);
           if (partners.length > 0) setPartnerName(partners[0][0]);
-        });
+        };
+        hbRef.on("value", hbListener);
 
         return () => {
-          txRef.off("value", unsubTx);
-          hbRef.off("value", unsubHB);
+          txRef.off("value", txListener);
+          hbRef.off("value", hbListener);
           clearInterval(hbInt);
           db.ref(`${DB_PATH}/heartbeats/${myName}`).remove();
         };
@@ -323,8 +325,10 @@ input[type=number]{-moz-appearance:textfield;}
           await db.ref(`${DB_PATH}/transactions`).set(obj);
           setOnline(true);
         } catch { setOnline(false); showToast("Gagal sync, cek koneksi!", "err"); }
-        setSyncing(false);
-        writingRef.current = false;
+        finally {
+          writingRef.current = false;
+          setSyncing(false);
+        }
       };
 
       // ── Split Bill Helpers ──
