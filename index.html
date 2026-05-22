@@ -10,6 +10,9 @@
   <title>Finance Berdua 💑</title>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -52,7 +55,7 @@
     const today   = () => new Date().toISOString().split("T")[0];
     const fmtDate    = s => { if (!s) return ""; const [,m,d] = s.split("-"); return `${d} ${BULAN[+m-1]}`; };
     const monthLabel = key => { const [y,m] = key.split("-"); return `${BULAN[+m-1]} ${y}`; };
-    const txMonth    = t => t.tanggal.slice(0,7);
+    const txMonth    = t => (t && t.tanggal) ? t.tanggal.slice(0,7) : '';
     const THREE_MONTHS_AGO = (() => { const d=new Date(); d.setMonth(d.getMonth()-3); return d.toISOString().slice(0,7); })();
     const GEMINI_API_KEY = "AIzaSyBZMc-FwSso4QFgDR60zuYuJieDWc67Q6g";
 
@@ -111,87 +114,196 @@
     const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-::-webkit-scrollbar{display:none;}
-body{background:#000;}
-.app{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#000;min-height:100dvh;color:#fff;max-width:430px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
+@media (hover: none) {
+  ::-webkit-scrollbar{display:none;}
+}
+body{background:#060608; overflow-x: hidden;}
+
+/* ── Layout ── */
+.app{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#060608;min-height:100dvh;color:#fff;max-width:430px;margin:0 auto;display:flex;flex-direction:column;position:relative;}
 .screen{flex:1;display:flex;flex-direction:column;}
-.scroll{flex:1;overflow-y:auto;padding:0 16px 100px;}
-.hdr{padding:56px 16px 8px;display:flex;justify-content:space-between;align-items:flex-end;}
-.hdr-sub{font-size:13px;color:rgba(255,255,255,.35);font-weight:500;letter-spacing:-.1px;}
+.scroll{flex:1;overflow-y:auto;padding:0 16px calc(112px + env(safe-area-inset-bottom));}
+
+/* ── Header ── */
+.hdr{padding:calc(48px + env(safe-area-inset-top)) 16px 8px;display:flex;justify-content:space-between;align-items:flex-end;}
+.hdr-sub{font-size:13px;color:rgba(255,255,255,.35);font-weight:600;letter-spacing:-.1px;}
 .hdr-title{font-size:28px;font-weight:700;color:#fff;margin-top:2px;letter-spacing:-.6px;}
 .hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+
+/* ── Status badges ── */
 .badge{display:flex;align-items:center;gap:4px;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;letter-spacing:-.1px;}
 .badge-on{background:rgba(52,199,89,.12);border:.5px solid rgba(52,199,89,.3);color:#34c759;}
 .badge-off{background:rgba(255,59,48,.1);border:.5px solid rgba(255,59,48,.25);color:#ff3b30;}
-.badge-partner{background:rgba(175,82,222,.12);border:.5px solid rgba(175,82,222,.3);color:#af52de;}
+.badge-partner{background:rgba(88,86,214,.15);border:.5px solid rgba(88,86,214,.4);color:#a78bfa;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.75);}}
 .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .dot-on{background:#34c759;animation:pulse 2s infinite;}
 .dot-off{background:#ff3b30;}
-.dot-pur{background:#af52de;animation:pulse 2s infinite;}
-.balance-card{margin:12px 16px 20px;background:#111;border-radius:22px;padding:20px;border:.5px solid rgba(255,255,255,.08);}
-.bal-label{font-size:12px;color:rgba(255,255,255,.35);font-weight:500;letter-spacing:-.1px;}
-.bal-amount{font-size:38px;font-weight:700;color:#fff;margin:4px 0 16px;letter-spacing:-1.5px;}
+.dot-pur{background:#a78bfa;animation:pulse 2s infinite;}
+
+/* ── Balance card — glowing glass + indigo tint ── */
+.balance-card{margin:12px 16px 20px;background:linear-gradient(135deg, rgba(88,86,214,.12), rgba(167,139,250,.04));border-radius:24px;padding:22px;border:1px solid rgba(88,86,214,.25);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);position:relative;overflow:hidden;box-shadow:0 12px 32px -8px rgba(88,86,214,.2), inset 0 1px 1px rgba(255,255,255,0.1);}
+.balance-card::before{content:'';position:absolute;top:-60px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(88,86,214,.22) 0%,transparent 70%);pointer-events:none;}
+.bal-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:600;letter-spacing:-.1px;}
+.bal-amount{font-size:38px;font-weight:700;color:#fff;margin:6px 0 18px;letter-spacing:-1.5px;text-shadow:0 2px 10px rgba(0,0,0,0.3);}
 .bal-row{display:flex;gap:8px;}
-.mini-stat{flex:1;background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;border:.5px solid rgba(255,255,255,.06);}
-.mini-label{font-size:10px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.3px;text-transform:uppercase;display:flex;align-items:center;gap:4px;}
+.mini-stat{flex:1;background:rgba(255,255,255,.04);border-radius:16px;padding:12px 14px;border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);}
+.mini-label{font-size:10px;color:rgba(255,255,255,.35);font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:4px;}
 .mini-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 .mini-val{font-size:15px;font-weight:700;margin-top:5px;letter-spacing:-.4px;}
-.sec-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+
+/* ── Section title ── */
+.sec-title{font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+
+/* ── Category bars ── */
 .cat-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .cat-bar-bg{flex:1;background:rgba(255,255,255,.06);border-radius:999px;height:4px;}
-.cat-bar-fill{height:100%;border-radius:999px;background:#fff;}
-.tx-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:.5px solid rgba(255,255,255,.05);}
-.tx-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.cat-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#5856d6,#a78bfa);}
+
+/* ── Transaction items ── */
+.tx-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:.5px solid rgba(255,255,255,.05);transition:background .2s;}
+.tx-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);}
 .tx-info{flex:1;min-width:0;}
-.tx-desc{font-size:15px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;}
-.tx-meta{font-size:12px;color:rgba(255,255,255,.3);margin-top:2px;font-weight:400;}
+.tx-desc{font-size:15px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;}
+.tx-meta{font-size:12px;color:rgba(255,255,255,.35);margin-top:2px;font-weight:400;}
 .who-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;display:inline-block;margin-top:4px;letter-spacing:-.1px;}
-.tx-amount{font-size:15px;font-weight:600;flex-shrink:0;letter-spacing:-.3px;}
-.del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.25;padding:4px;line-height:1;}
-.form-card{background:#111;border-radius:22px;border:.5px solid rgba(255,255,255,.08);padding:20px;}
-.toggle-row{display:flex;background:rgba(255,255,255,.04);border-radius:14px;padding:3px;margin-bottom:20px;border:.5px solid rgba(255,255,255,.06);}
-.tog-btn{flex:1;padding:11px;border-radius:11px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;background:none;color:rgba(255,255,255,.3);letter-spacing:-.2px;}
+.tx-amount{font-size:15px;font-weight:700;flex-shrink:0;letter-spacing:-.3px;}
+.del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.3;padding:4px;line-height:1;transition:opacity .15s;}
+.del-btn:hover{opacity:0.8;}
+
+/* ── Form card — glass ── */
+.form-card{background:rgba(20,20,25,.55);border-radius:24px;border:1px solid rgba(255,255,255,.07);padding:22px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 12px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,0.05);}
+.toggle-row{display:flex;background:rgba(0,0,0,.35);border-radius:14px;padding:3px;margin-bottom:20px;border:1px solid rgba(255,255,255,.05);}
+.tog-btn{flex:1;padding:11px;border-radius:11px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:none;color:rgba(255,255,255,.35);letter-spacing:-.2px;}
 .tog-in{background:rgba(52,199,89,.15)!important;color:#34c759!important;}
 .tog-out{background:rgba(255,59,48,.12)!important;color:#ff3b30!important;}
-.field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.3);margin-bottom:8px;}
-.inp{width:100%;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.1);border-radius:13px;padding:13px 15px;color:#fff;font-family:inherit;font-size:16px;outline:none;margin-bottom:14px;transition:border-color .2s;-webkit-appearance:none;letter-spacing:-.2px;}
+.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);margin-bottom:8px;}
+.inp{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;color:#fff;font-family:inherit;font-size:16px;outline:none;margin-bottom:16px;transition:all .2s;-webkit-appearance:none;letter-spacing:-.2px;}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 input[type=number]{-moz-appearance:textfield;}
-.inp:focus{border-color:rgba(255,255,255,.35);}
+.inp:focus{border-color:rgba(88,86,214,.6);background:rgba(255,255,255,.06);box-shadow:0 0 12px rgba(88,86,214,0.15);}
 .inp::placeholder{color:rgba(255,255,255,.2);}
 .kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.kat-item{background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.08);border-radius:14px;padding:11px 6px;text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);cursor:pointer;line-height:1.4;letter-spacing:-.1px;transition:all .15s;}
-.kat-item.sel{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;}
-.submit-btn{width:100%;padding:15px;border-radius:15px;border:none;background:#fff;color:#000;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;letter-spacing:-.2px;transition:opacity .15s;}
-.submit-btn:disabled{opacity:.3;cursor:not-allowed;}
-.submit-btn:active{opacity:.8;}
+.kat-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px 6px;text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);cursor:pointer;line-height:1.4;letter-spacing:-.1px;transition:all .15s;}
+.kat-item.sel{border-color:rgba(88,86,214,.5);background:rgba(88,86,214,.15);color:#a78bfa;box-shadow:0 0 12px rgba(88,86,214,0.12);}
+
+/* ── Submit button — indigo accent ── */
+.submit-btn{width:100%;padding:15px;border-radius:16px;border:none;background:linear-gradient(135deg,#5856d6,#7c7aff);color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;letter-spacing:-.2px;transition:opacity .15s, transform 0.1s;box-shadow:0 4px 16px rgba(88,86,214,0.3);}
+.submit-btn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none;}
+.submit-btn:active{opacity:.85;transform:scale(0.98);}
+
+/* ── Filters ── */
 .filter-row{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;}
-.filter-pill{flex-shrink:0;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,.35);cursor:pointer;white-space:nowrap;letter-spacing:-.1px;}
-.filter-pill.sel{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff;}
-.export-btn{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:999px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:-.1px;}
-.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.96);border:.5px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#fff;z-index:9999;white-space:nowrap;backdrop-filter:blur(20px);animation:toastIn .2s ease;letter-spacing:-.2px;}
-.toast.err{background:rgba(40,10,10,.96);border-color:rgba(255,59,48,.25);color:#ff3b30;}
+.filter-pill{flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:999px;padding:8px 16px;font-size:12px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;white-space:nowrap;letter-spacing:-.1px;transition:all .2s;}
+.filter-pill.sel{background:rgba(88,86,214,.18);border-color:rgba(88,86,214,.5);color:#a78bfa;box-shadow:0 0 8px rgba(88,86,214,0.12);}
+.export-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:-.1px;transition:all .2s;}
+.export-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,0.12);}
+
+/* ── Toast ── */
+.toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#fff;z-index:9999;white-space:nowrap;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);animation:toastIn .2s ease;letter-spacing:-.2px;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.toast.err{background:rgba(40,10,10,.92);border-color:rgba(255,59,48,.25);color:#ff3b30;}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-6px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
-.sync-bar{position:fixed;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,#fff,transparent);background-size:200%;animation:syncAnim 1.2s ease-in-out infinite;z-index:9999;}
+
+/* ── Sync bar ── */
+.sync-bar{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#7c7aff,transparent);background-size:200%;animation:syncAnim 1.2s ease-in-out infinite;z-index:9999;}
 @keyframes syncAnim{0%{background-position:-100%}100%{background-position:300%;}}
-.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:82px;background:rgba(0,0,0,.85);border-top:.5px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-around;padding-bottom:10px;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 18px;border-radius:14px;cursor:pointer;border:none;background:none;transition:opacity .15s;}
-.nav-btn.act{background:rgba(255,255,255,.08);}
-.nav-icon{font-size:22px;line-height:1;}
-.nav-label{font-size:10px;font-weight:600;letter-spacing:.2px;text-transform:uppercase;color:rgba(255,255,255,.25);}
-.nav-btn.act .nav-label{color:rgba(255,255,255,.8);}
+
+/* ── Floating Bottom Nav — Premium Glassmorphism ── */
+.bnav{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:398px;height:72px;background:rgba(15,15,18,.75);border:1px solid rgba(255,255,255,.08);border-radius:24px;display:flex;align-items:center;justify-content:space-around;backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:0 12px 40px rgba(0,0,0,.6);z-index:999;padding:0 8px;}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;border-radius:16px;cursor:pointer;border:none;background:none;transition:all .2s;color:rgba(255,255,255,.4);position:relative;}
+.nav-btn.act{color:#a78bfa;background:rgba(88,86,214,.12);box-shadow:inset 0 0 12px rgba(88,86,214,.08);}
+.nav-btn.act::after{content:'';position:absolute;bottom:4px;width:4px;height:4px;border-radius:50%;background:#a78bfa;box-shadow:0 0 8px #a78bfa;}
+.nav-icon{font-size:20px;line-height:1;margin-bottom:2px;}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:currentColor;}
+
+/* ── Empty states ── */
 .empty{text-align:center;padding:52px 20px;}
 .empty-icon{font-size:44px;margin-bottom:10px;}
 .empty-text{font-size:15px;font-weight:500;color:rgba(255,255,255,.3);letter-spacing:-.2px;}
 .empty-sub{font-size:13px;margin-top:5px;color:rgba(255,255,255,.18);}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
-.modal-sheet{background:#111;border-radius:26px 26px 0 0;border:.5px solid rgba(255,255,255,.08);padding:28px 20px 44px;width:100%;max-width:430px;animation:slideUp .3s cubic-bezier(.32,0,.67,0);}
+
+/* ── Modal — layered glass ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+.modal-sheet{background:rgba(20,20,24,.98);border-radius:26px 26px 0 0;border:1px solid rgba(255,255,255,.1);padding:28px 20px 44px;width:100%;max-width:430px;animation:slideUp .3s cubic-bezier(.32,0,.67,0);box-shadow:0 -10px 40px rgba(0,0,0,0.5);}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .modal-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;text-align:center;letter-spacing:-.4px;}
 .modal-sub{font-size:14px;color:rgba(255,255,255,.4);margin-bottom:20px;line-height:1.5;text-align:center;letter-spacing:-.1px;}
-.modal-close{width:100%;padding:14px;border-radius:15px;border:.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px;letter-spacing:-.2px;}
+.modal-close{width:100%;padding:14px;border-radius:15px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px;letter-spacing:-.2px;}
+\`;
 `;
+
+    const KAT_COLORS = {
+      Makan: "#f87171",
+      Transport: "#60a5fa",
+      Belanja: "#f472b6",
+      Tagihan: "#fb923c",
+      Nongkrong: "#fb7185",
+      Hiburan: "#c084fc",
+      Tabungan: "#34d399",
+      Lainnya: "#9ca3af",
+      Gaji: "#34d399",
+      Bonus: "#fbbf24",
+    };
+
+    function SubtleDonutChart({ data, total }) {
+      const radius = 26;
+      const strokeWidth = 5;
+      const size = 76;
+      const center = size / 2;
+      const circumference = 2 * Math.PI * radius; // ~163.36
+      let currentOffset = 0;
+
+      return (
+        <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
+            <circle
+              cx={center}
+              cy={center}
+              r={radius}
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.05)"
+              strokeWidth={strokeWidth}
+            />
+            {data.map(([kat, val], idx) => {
+              const pct = val / total;
+              const strokeLength = pct * circumference;
+              const strokeOffset = circumference - strokeLength + currentOffset;
+              currentOffset -= strokeLength;
+
+              return (
+                <circle
+                  key={kat}
+                  cx={center}
+                  cy={center}
+                  r={radius}
+                  fill="none"
+                  stroke={KAT_COLORS[kat] || "#a78bfa"}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeOffset}
+                  strokeLinecap="round"
+                  style={{ transition: "stroke-dashoffset 0.5s ease" }}
+                />
+              );
+            })}
+          </svg>
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none"
+          }}>
+            <span style={{ fontSize: 8, color: "rgba(255,255,255,.35)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Total</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", marginTop: 1 }}>
+              {total > 1000000 ? `${(total/1000000).toFixed(1)}jt` : total > 1000 ? `${(total/1000).toFixed(0)}rb` : total}
+            </span>
+          </div>
+        </div>
+      );
+    }
 
     function App() {
       const [tab, setTab]                     = useState("dashboard");
@@ -731,7 +843,7 @@ input[type=number]{-moz-appearance:textfield;}
               <div className="scroll">
                 {/* Template card */}
                 {!templateData ? (
-                  <label style={{display:"flex",alignItems:"center",gap:12,background:"#111",border:"1.5px dashed #2a2a3a",borderRadius:20,padding:"14px 18px",marginBottom:16,cursor:"pointer"}}>
+                  <label style={{display:"flex",alignItems:"center",gap:12,background:"#111",border:".5px dashed rgba(255,255,255,.12)",borderRadius:20,padding:"14px 18px",marginBottom:16,cursor:"pointer"}}>
                     <div style={{fontSize:28}}>📂</div>
                     <div style={{flex:1}}>
                       <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.4)"}}>Upload template Excel lo</div>
@@ -740,13 +852,13 @@ input[type=number]{-moz-appearance:textfield;}
                     <input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
                   </label>
                 ) : (
-                  <div style={{display:"flex",alignItems:"center",gap:10,background:"rgba(52,199,89,.12)",border:"1px solid #2a4a2a",borderRadius:16,padding:"10px 16px",marginBottom:16}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,background:"rgba(52,199,89,.08)",border:".5px solid rgba(52,199,89,.2)",borderRadius:16,padding:"10px 16px",marginBottom:16}}>
                     <div style={{fontSize:20}}>✅</div>
                     <div style={{flex:1}}>
                       <div style={{fontSize:12,fontWeight:700,color:"#34c759"}}>{templateName}</div>
                       <div style={{fontSize:10,color:"rgba(255,255,255,.3)",marginTop:1}}>Template siap dipakai</div>
                     </div>
-                    <label style={{cursor:"pointer",fontSize:11,color:"rgba(255,255,255,.4)",fontWeight:700,padding:"4px 10px",background:"rgba(255,255,255,.08)",borderRadius:999,border:"1px solid #2a2a3a",flexShrink:0}}>
+                    <label style={{cursor:"pointer",fontSize:11,color:"rgba(255,255,255,.4)",fontWeight:700,padding:"4px 10px",background:"rgba(255,255,255,.08)",borderRadius:999,border:".5px solid rgba(255,255,255,.1)",flexShrink:0}}>
                       Ganti<input type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={handleTemplateUpload}/>
                     </label>
                   </div>
@@ -789,23 +901,34 @@ input[type=number]{-moz-appearance:textfield;}
                 {/* Kategori */}
                 {dashData.katSorted.length > 0 && <>
                   <div className="sec-title">Kategori terboros — {monthLabel(dashMonth)}</div>
-                  {dashData.katSorted.slice(0,5).map(([kat,val]) => {
-                    const pct = Math.round((val/dashData.pengeluaran)*100);
-                    return (
-                      <div key={kat} className="cat-bar-wrap">
-                        <div style={{fontSize:20,width:28,textAlign:"center"}}>{EMOJI[kat]}</div>
-                        <div style={{flex:1}}>
-                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                            <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,.7)"}}>{kat}</span>
-                            <span style={{fontSize:12,fontFamily:inherit,color:"rgba(255,255,255,.3)"}}>{fmtRp(val)}</span>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 20,
+                    background: "rgba(255,255,255,.03)",
+                    border: "1px solid rgba(255,255,255,.06)",
+                    borderRadius: 22,
+                    padding: "20px 16px",
+                    marginBottom: 20,
+                    backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)"
+                  }}>
+                    <SubtleDonutChart data={dashData.katSorted} total={dashData.pengeluaran} />
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+                      {dashData.katSorted.slice(0, 4).map(([kat, val]) => {
+                        const pct = Math.round((val / dashData.pengeluaran) * 100);
+                        const c = KAT_COLORS[kat] || "#a78bfa";
+                        return (
+                          <div key={kat} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: c, flexShrink: 0 }} />
+                            <div style={{ fontSize: 11, color: "rgba(255,255,255,.45)", width: 22, textAlign: "center", flexShrink: 0 }}>{EMOJI[kat]}</div>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,.85)", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{kat}</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "#fff", marginLeft: 4 }}>{pct}%</span>
                           </div>
-                          <div className="cat-bar-bg"><div className="cat-bar-fill" style={{width:`${pct}%`}}/></div>
-                        </div>
-                        <span style={{fontSize:11,color:"rgba(255,255,255,.3)",fontFamily:inherit,width:30,textAlign:"right"}}>{pct}%</span>
-                      </div>
-                    );
-                  })}
-                  <div style={{height:16}}/>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </>}
 
                 {/* Recent */}
@@ -821,7 +944,7 @@ input[type=number]{-moz-appearance:textfield;}
                       <div className="tx-info">
                         <div className="tx-desc">{t.deskripsi}</div>
                         <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
-                        <span className="who-badge" style={{background:t.addedBy===myName?"rgba(255,255,255,.08)":"rgba(175,82,222,.12)",color:t.addedBy===myName?"#fff":"#af52de"}}>
+                        <span className="who-badge" style={{background:t.addedBy===myName?"rgba(88,86,214,.15)":"rgba(175,82,222,.1)",color:t.addedBy===myName?"#a78bfa":"#c4b5fd"}}>
                           {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
                         </span>
                       </div>
@@ -922,7 +1045,7 @@ input[type=number]{-moz-appearance:textfield;}
                     <div style={{flex:1,fontSize:12,color:"rgba(255,255,255,.3)",fontWeight:600}}>
                       Ada {oldTxCount} transaksi tersembunyi {oldMonthMin ? `dari ${monthLabel(oldMonthMin)}` : ""}
                     </div>
-                    <span style={{fontSize:11,color:"rgba(255,255,255,.8)",fontWeight:700}}>Tampilkan →</span>
+                    <span style={{fontSize:11,color:"#a78bfa",fontWeight:700}}>Tampilkan →</span>
                   </div>
                 )}
 
@@ -947,7 +1070,7 @@ input[type=number]{-moz-appearance:textfield;}
                           <div className="tx-info">
                             <div className="tx-desc">{t.deskripsi}</div>
                             <div className="tx-meta">{fmtDate(t.tanggal)} · {t.kategori}</div>
-                            <span className="who-badge" style={{background:t.addedBy===myName?"rgba(255,255,255,.08)":"rgba(175,82,222,.12)",color:t.addedBy===myName?"#fff":"#af52de"}}>
+                            <span className="who-badge" style={{background:t.addedBy===myName?"rgba(88,86,214,.15)":"rgba(175,82,222,.1)",color:t.addedBy===myName?"#a78bfa":"#c4b5fd"}}>
                               {t.addedBy===myName?"Gue":`👫 ${t.addedBy}`}
                             </span>
                           </div>
@@ -991,12 +1114,12 @@ input[type=number]{-moz-appearance:textfield;}
                   {["Temen","Input","Assign","Ringkasan"].map((s,i) => (
                     <div key={s} style={{display:"flex",alignItems:"center",gap:6,flex:i<3?1:"none"}}>
                       <div style={{width:24,height:24,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0,
-                        background:i<sbStep?"#fff":"rgba(255,255,255,.08)",
-                        border:i===sbStep?"1.5px solid rgba(255,255,255,.6)":"none",
-                        color:i<sbStep?"#000":i===sbStep?"#fff":"rgba(255,255,255,.25)"}}>
+                        background:i<sbStep?"#5856d6":"rgba(255,255,255,.08)",
+                        border:i===sbStep?"1.5px solid #7c7aff":"none",
+                        color:i<sbStep?"#fff":i===sbStep?"#a78bfa":"rgba(255,255,255,.25)"}}>
                         {i<sbStep?"✓":i+1}
                       </div>
-                      {i<3&&<div style={{flex:1,height:2,background:i<sbStep?"#fff":"rgba(255,255,255,.08)",borderRadius:999}}/>}
+                      {i<3&&<div style={{flex:1,height:2,background:i<sbStep?"#5856d6":"rgba(255,255,255,.08)",borderRadius:999}}/>}
                     </div>
                   ))}
                 </div>
@@ -1022,7 +1145,7 @@ input[type=number]{-moz-appearance:textfield;}
                       );
                     })}
                   </div>
-                  <button onClick={()=>setSbStep(1)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                  <button onClick={()=>setSbStep(1)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"linear-gradient(135deg,#5856d6,#7c7aff)",color:"#fff",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
                     Lanjut → Pilih Input ›
                   </button>
                 </>}
@@ -1033,7 +1156,7 @@ input[type=number]{-moz-appearance:textfield;}
                   <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:16}}>
                     <div onClick={()=>setSbInputMode("scan")}
                       style={{background:"#111",border:".5px solid rgba(255,255,255,.1)",borderRadius:20,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:16}}>
-                      <div style={{width:52,height:52,borderRadius:16,background:"rgba(255,255,255,.1)",border:".5px solid rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>📷</div>
+                      <div style={{width:52,height:52,borderRadius:16,background:"rgba(88,86,214,.15)",border:".5px solid rgba(88,86,214,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>📷</div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:3}}>Foto Struk</div>
                         <div style={{fontSize:12,color:"rgba(255,255,255,.3)",lineHeight:1.4}}>AI baca struk otomatis, item langsung muncul</div>
@@ -1042,7 +1165,7 @@ input[type=number]{-moz-appearance:textfield;}
                     </div>
                     <div onClick={()=>setSbInputMode("manual")}
                       style={{background:"#111",border:".5px solid rgba(255,255,255,.1)",borderRadius:20,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:16}}>
-                      <div style={{width:52,height:52,borderRadius:16,background:"rgba(255,255,255,.08)",border:"1px solid #2a2a3a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>✏️</div>
+                      <div style={{width:52,height:52,borderRadius:16,background:"rgba(255,255,255,.08)",border:".5px solid rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>✏️</div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:3}}>Input Manual</div>
                         <div style={{fontSize:12,color:"rgba(255,255,255,.3)",lineHeight:1.4}}>Ketik sendiri nama item dan harganya</div>
@@ -1050,19 +1173,19 @@ input[type=number]{-moz-appearance:textfield;}
                       <div style={{fontSize:20,color:"rgba(255,255,255,.25)"}}>›</div>
                     </div>
                   </div>
-                  <button onClick={()=>setSbStep(0)} style={{width:"100%",padding:12,borderRadius:14,border:"1px solid #2a2a3a",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.4)",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                  <button onClick={()=>setSbStep(0)} style={{width:"100%",padding:12,borderRadius:14,border:".5px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.4)",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer"}}>
                     ← Kembali
                   </button>
                 </>}
 
                 {/* ── STEP 1: Scan mode ── */}
                 {sbStep===1 && sbInputMode==="scan" && <>
-                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"rgba(255,255,255,.8)",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
+                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"#a78bfa",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
                   <div className="sec-title">Foto struk belanja lo</div>
                   <input ref={sbFileRef} type="file" accept="image/*" capture="environment" style={{display:"none"}}
                     onChange={e=>{ if(e.target.files[0]) sbScanReceipt(e.target.files[0]); e.target.value=""; }}/>
                   <div onClick={()=>!sbScanning&&sbFileRef.current.click()}
-                    style={{background:"#111",border:`1.5px ${sbScanning?"solid":"dashed"} ${sbScanning?"rgba(255,255,255,.8)":"rgba(255,255,255,.1)"}`,borderRadius:20,padding:32,marginBottom:16,textAlign:"center",cursor:sbScanning?"default":"pointer"}}>
+                    style={{background:"#111",border:`.5px ${sbScanning?"solid":"dashed"} ${sbScanning?"#7c7aff":"rgba(255,255,255,.1)"}`,borderRadius:20,padding:32,marginBottom:16,textAlign:"center",cursor:sbScanning?"default":"pointer"}}>
                     {sbScanning ? (
                       <>
                         <div style={{fontSize:44,marginBottom:12}}>⏳</div>
@@ -1084,7 +1207,7 @@ input[type=number]{-moz-appearance:textfield;}
 
                 {/* ── STEP 1: Manual mode ── */}
                 {sbStep===1 && sbInputMode==="manual" && <>
-                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"rgba(255,255,255,.8)",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
+                  <button onClick={()=>setSbInputMode(null)} style={{background:"none",border:"none",color:"#a78bfa",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",marginBottom:16,padding:0}}>← Ganti metode</button>
                   <div className="sec-title">Tambah pesanan</div>
                   <div style={{background:"#111",borderRadius:20,border:".5px solid rgba(255,255,255,.08)",padding:16,marginBottom:12}}>
                     <div className="field-label">Nama item</div>
@@ -1100,7 +1223,7 @@ input[type=number]{-moz-appearance:textfield;}
                           style={{display:"inline-flex",alignItems:"center",background:sel?c.bg:"rgba(255,255,255,.08)",border:`1px solid ${sel?c.color:"rgba(255,255,255,.1)"}`,borderRadius:999,padding:"6px 14px",fontSize:12,fontWeight:700,color:sel?c.color:"rgba(255,255,255,.3)",marginRight:6,marginBottom:6,cursor:"pointer"}}>{p}</span>;
                       })}
                     </div>
-                    <button onClick={sbAddItem} style={{width:"100%",padding:13,borderRadius:14,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>
+                    <button onClick={sbAddItem} style={{width:"100%",padding:13,borderRadius:14,border:"none",background:"linear-gradient(135deg,#5856d6,#7c7aff)",color:"#fff",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>
                       + Tambah Item
                     </button>
                   </div>
@@ -1119,7 +1242,7 @@ input[type=number]{-moz-appearance:textfield;}
                         </div>
                       ))}
                     </div>
-                    <button onClick={()=>setSbStep(3)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                    <button onClick={()=>setSbStep(3)} style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"linear-gradient(135deg,#5856d6,#7c7aff)",color:"#fff",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
                       Lanjut → Ringkasan 📊
                     </button>
                   </>}
@@ -1129,7 +1252,7 @@ input[type=number]{-moz-appearance:textfield;}
                 {sbStep===2 && <>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                     <div className="sec-title" style={{margin:0}}>Siapa punya item ini?</div>
-                    {sbUnassigned>0 && <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:999,background:"rgba(255,59,48,.1)",border:"1px solid #4a2a2a",color:"#ff3b30"}}>{sbUnassigned} belum</span>}
+                    {sbUnassigned>0 && <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:999,background:"rgba(255,59,48,.1)",border:".5px solid rgba(255,59,48,.25)",color:"#ff3b30"}}>{sbUnassigned} belum</span>}
                   </div>
                   <div style={{marginBottom:12,display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
                     <span style={{fontSize:11,color:"rgba(255,255,255,.3)",fontWeight:600}}>Tap nama di tiap item:</span>
@@ -1159,7 +1282,7 @@ input[type=number]{-moz-appearance:textfield;}
                     })}
                   </div>
                   <button onClick={()=>setSbStep(3)} disabled={sbUnassigned>0}
-                    style={{width:"100%",padding:14,borderRadius:16,border:"none",background:"#fff",color:"#000",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:sbUnassigned>0?"not-allowed":"pointer",opacity:sbUnassigned>0?.35:1,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                    style={{width:"100%",padding:14,borderRadius:16,border:"none",background:sbUnassigned>0?"rgba(255,255,255,.06)":"linear-gradient(135deg,#5856d6,#7c7aff)",color:sbUnassigned>0?"rgba(255,255,255,.3)":"#fff",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:sbUnassigned>0?"not-allowed":"pointer",opacity:sbUnassigned>0?.35:1,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
                     {sbUnassigned>0?`${sbUnassigned} item belum ditandai`:"Lanjut → Ringkasan 📊"}
                   </button>
                 </>}
@@ -1176,7 +1299,7 @@ input[type=number]{-moz-appearance:textfield;}
                     <div style={{fontSize:28,fontWeight:700,fontFamily:"inherit",color:"#fff",marginBottom:4}}>{"Rp "+Math.round(sbMyTotal).toLocaleString("id-ID")}</div>
                     <div style={{fontSize:11,color:"rgba(255,255,255,.3)",marginBottom:12}}>Total yang harus lo berdua bayar</div>
                     <button onClick={sbExportToFinance} disabled={sbExported}
-                      style={{width:"100%",padding:13,borderRadius:14,border:"none",background:sbExported?"rgba(255,255,255,.08)":"#fff",color:sbExported?"rgba(255,255,255,.3)":"white",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:sbExported?"default":"pointer"}}>
+                      style={{width:"100%",padding:13,borderRadius:14,border:"none",background:sbExported?"rgba(255,255,255,.06)":"linear-gradient(135deg,#5856d6,#7c7aff)",color:sbExported?"rgba(255,255,255,.3)":"white",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:sbExported?"default":"pointer"}}>
                       {sbExported?"✅ Sudah dicatat ke Finance Tracker":"📥 Catat ke Finance Tracker"}
                     </button>
                   </div>
@@ -1199,7 +1322,7 @@ input[type=number]{-moz-appearance:textfield;}
                       </div>
                     );
                   })}
-                  <button onClick={sbReset} style={{width:"100%",padding:13,borderRadius:14,border:"1px solid #2a2a3a",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.4)",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8}}>
+                  <button onClick={sbReset} style={{width:"100%",padding:13,borderRadius:14,border:".5px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.4)",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8}}>
                     🔄 Reset &amp; Mulai Sesi Baru
                   </button>
                 </>}
@@ -1267,7 +1390,7 @@ input[type=number]{-moz-appearance:textfield;}
                   <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📊</div>
                   <div className="modal-title">Data Excel ditemukan!</div>
                   <div className="modal-sub">Gua nemu <b style={{color:"#fff"}}>{importModal.count} transaksi</b> di file Excel lo. Mau diimport semuanya ke app?</div>
-                  <div style={{background:"rgba(255,255,255,.04)",borderRadius:16,padding:"14px 16px",marginBottom:16,border:".5px solid rgba(255,255,255,.08)"}}>
+                  <div style={{background:"rgba(255,255,255,.04)",borderRadius:16,padding:"14px 16px",marginBottom:16,border:".5px solid rgba(255,255,255,.07)"}}>
                     {["Data lama dari Excel masuk ke riwayat app","Data yang udah ada di app tetap aman","Ga perlu input ulang dari awal 🎉"].map((text,i)=>(
                       <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
                         <span>✅</span><span style={{fontSize:13,color:"rgba(255,255,255,.4)",lineHeight:1.4}}>{text}</span>
@@ -1291,7 +1414,7 @@ input[type=number]{-moz-appearance:textfield;}
                   <div style={{fontSize:52,marginBottom:12,textAlign:"center"}}>📥</div>
                   <div className="modal-title">Export berhasil!</div>
                   <div className="modal-sub">File <b style={{color:"#fff"}}>{templateName||"Finance_Tracker_Pro.xlsx"}</b> udah ke-download dengan semua transaksi terbaru 🎉</div>
-                  <div style={{background:"rgba(255,255,255,.04)",borderRadius:16,padding:"14px 16px",marginBottom:16,border:".5px solid rgba(255,255,255,.08)"}}>
+                  <div style={{background:"rgba(255,255,255,.04)",borderRadius:16,padding:"14px 16px",marginBottom:16,border:".5px solid rgba(255,255,255,.07)"}}>
                     {["Data masuk ke sheet bulan yang sesuai","Summary & Dashboard otomatis ke-update","File siap dibuka di Excel / Google Sheets"].map((text,i)=>(
                       <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?10:0}}>
                         <span>✅</span><span style={{fontSize:13,color:"rgba(255,255,255,.4)",lineHeight:1.4}}>{text}</span>
