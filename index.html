@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="theme-color" content="#000"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://www.gstatic.com https://unpkg.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com https://fonts.googleapis.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://*.googleapis.com https://identitytoolkit.googleapis.com wss://*.firebasedatabase.app https://generativelanguage.googleapis.com; worker-src 'self' blob:;"/>
+  <!-- ponytail: CSP via meta (lazy), upgrade to _headers / Worker header when need stricter -->
+  <!-- ponytail: Tailwind CDN (lazy), upgrade to build-time Tailwind when need CSP strict / perf -->
   <title>Finance Berdua </title>
   <link id="app-manifest" rel="manifest"/>
   <link rel="apple-touch-icon" href="icon-192.png"/>

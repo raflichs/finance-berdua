@@ -27,7 +27,7 @@ const fmtDate = s => { if (!s) return ""; const [, m, d] = s.split("-"); return 
 const monthLabel = key => { const [y, m] = key.split("-"); return `${BULAN[+m - 1]} ${y}`; };
 const txMonth = t => (t && t.tanggal) ? t.tanggal.slice(0, 7) : '';
 const THREE_MONTHS_AGO = (() => { const d = new Date(); d.setMonth(d.getMonth() - 3); return toLocalMonthKey(d); })();
-const GEMINI_API_KEY = "AIzaSyBZMc-FwSso4QFgDR60zuYuJieDWc67Q6g";
+// GEMINI via /api/scan-struk ponytail: proxy via Worker, fallback direct when env missing upgrade when need rate limit
 
 // ── IndexedDB untuk simpan template binary ──
 const IDB = {
@@ -474,7 +474,7 @@ function App() {
     setDebtList(updatedList);
     txsRef.current = updatedTxs;
     setTransactions(updatedTxs);
-    await Promise.all([saveDebtList(updatedList), saveTx(updatedTxs)]);
+    await Promise.all([saveDebtList(updatedList), saveTxAdd(debtTx)]);
     setPaymentNominal(""); setPaymentCatatan(""); setPaymentTanggal(today());
     setDebtView("detail");
     const lunas = updatedDebt.paid >= updatedDebt.total;
@@ -513,7 +513,7 @@ function App() {
     setDebtList(updatedList);
     txsRef.current = updatedTxs;
     setTransactions(updatedTxs);
-    await Promise.all([saveDebtList(updatedList), saveTx(updatedTxs)]);
+    await Promise.all([saveDebtList(updatedList), saveTxAdd(debtTx)]);
     showToast(`${selectedDebt.name} lunas & masuk riwayat! 🎉`);
   };
 
@@ -744,20 +744,25 @@ function App() {
     };
   }, [nameSet, myName, authReady]);
 
-  // Save ke Firebase
+  // ponytail: per-tx set/remove, upgrade to transaction queue when need offline
   const saveTx = async list => {
     writingRef.current = true;
     setSyncing(true);
     try {
       const obj = {};
       list.forEach(t => { obj[t.id] = t; });
-      await db.ref(`${DB_PATH}/transactions`).set(obj);
+      await db.ref(`${DB_PATH}/transactions`).update(obj);
       setOnline(true);
     } catch { setOnline(false); showToast("Gagal sync, cek koneksi!", "err"); }
-    finally {
-      writingRef.current = false;
-      setSyncing(false);
-    }
+    finally { writingRef.current = false; setSyncing(false); }
+  };
+  const saveTxAdd = async tx => {
+    writingRef.current = true; setSyncing(true);
+    try { await db.ref(`${DB_PATH}/transactions/${tx.id}`).set(tx); setOnline(true); } catch { setOnline(false); showToast("Gagal sync, cek koneksi!", "err"); } finally { writingRef.current = false; setSyncing(false); }
+  };
+  const saveTxRemove = async id => {
+    writingRef.current = true; setSyncing(true);
+    try { await db.ref(`${DB_PATH}/transactions/${id}`).remove(); setOnline(true); } catch { setOnline(false); showToast("Gagal sync, cek koneksi!", "err"); } finally { writingRef.current = false; setSyncing(false); }
   };
 
   // ── Split Bill Helpers ──
@@ -817,7 +822,8 @@ function App() {
     setSbItemName(""); setSbItemPrice(""); setSbSelectedFor(["Gue"]);
   };
 
-  // ── Scan receipt via Gemini API ──
+  // ── Scan receipt via Worker proxy ──
+  // ponytail: proxy via Worker, fallback direct when env missing upgrade when need rate limit
   const sbScanReceipt = async (file) => {
     setSbScanning(true); setSbScanProgress(10);
     try {
@@ -829,23 +835,22 @@ function App() {
       });
       setSbScanProgress(35);
       const mediaType = file.type || "image/jpeg";
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
+      let response;
+      try {
+        response = await fetch("/api/scan-struk", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inline_data: { mime_type: mediaType, data: base64 } },
-                { text: 'Baca struk/nota ini dan ekstrak semua item beserta harganya. Balas HANYA dengan JSON array seperti ini, tanpa teks lain, tanpa markdown: [{"name": "nama item", "price": 12000}, ...]. Gunakan harga satuan (bukan subtotal). Jika ada qty lebih dari 1, sertakan di nama item.' }
-              ]
-            }],
-            generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
-          }),
-        }
-      );
+          body: JSON.stringify({ imageBase64: base64, mediaType, image: base64, mimeType: mediaType }),
+        });
+      } catch (netErr) {
+        throw new Error("Scan butuh Worker, set GEMINI_API_KEY di env");
+      }
+      if (!response.ok) {
+        const errJ = await response.json().catch(() => ({}));
+        if (response.status === 500 && errJ.error?.includes("GEMINI_API_KEY")) throw new Error("Scan butuh Worker, set GEMINI_API_KEY di env");
+        if (response.status === 404) throw new Error("Scan butuh Worker, set GEMINI_API_KEY di env");
+        throw new Error(errJ.error || `Scan gagal ${response.status}`);
+      }
       setSbScanProgress(80);
       const data = await response.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
@@ -883,7 +888,7 @@ function App() {
     };
     const updated = [newTx, ...txsRef.current];
     txsRef.current = updated; setTransactions(updated);
-    await saveTx(updated); setSbExported(true);
+    await saveTxAdd(newTx); setSbExported(true);
     showToast("Rp " + Math.round(sbMyTotal).toLocaleString("id-ID") + " dicatat! ✅");
   };
 
@@ -899,12 +904,11 @@ function App() {
     if (!editTx.nominal || !editTx.deskripsi.trim()) { showToast("Lengkapi semua field!", "err"); return; }
     const rawNominal = parseMoney(editTx.nominal);
     if (rawNominal <= 0) { showToast("Nominal harus valid!", "err"); return; }
-    const updated = txsRef.current.map(t =>
-      t.id === editTx.id ? { ...t, ...editTx, account: txAccount(editTx), nominal: rawNominal } : t
-    );
+    const edited = { ...txsRef.current.find(t => t.id === editTx.id), ...editTx, account: txAccount(editTx), nominal: rawNominal };
+    const updated = txsRef.current.map(t => t.id === editTx.id ? edited : t);
     txsRef.current = updated;
     setTransactions(updated);
-    await saveTx(updated);
+    await saveTxAdd(edited);
     setEditTx(null);
     showToast("Transaksi berhasil diupdate! ✅");
   };
@@ -918,7 +922,7 @@ function App() {
     const updated = [newTx, ...txsRef.current];
     txsRef.current = updated;
     setTransactions(updated);
-    await saveTx(updated);
+    await saveTxAdd(newTx);
     // Kirim notifikasi ke pasangan
     const jenisLabel = form.jenis === "Pemasukan" ? "pemasukan" : "pengeluaran";
     sendNotif(
@@ -966,7 +970,7 @@ function App() {
     const updated = [...toSave, ...txsRef.current];
     txsRef.current = updated;
     setTransactions(updated);
-    await saveTx(updated);
+    await Promise.all(toSave.map(t => saveTxAdd(t)));
     sendNotif(`Atur cash ${myName}`, `${newTx.deskripsi} - ${fmtRp(nominal)}${adminFee>0?` + admin ${fmtRp(adminFee)}`:""}`);
     setCashForm({ tanggal: today(), mode: "withdraw", deskripsi: "Tarik cash", nominal: "", adminFee: "" });
     showToast(adminFee>0 ? "Cash + biaya admin tercatat! ✅" : "Cash berhasil diatur! ✅");
@@ -986,7 +990,7 @@ function App() {
     const updated = [...txs, ...txsRef.current];
     txsRef.current = updated;
     setTransactions(updated);
-    await saveTx(updated);
+    await Promise.all(txs.map(t => saveTxAdd(t)));
     setOnboardingQRIS(""); setOnboardingCash("");
     showToast("Saldo awal tersimpan! ✅");
   };
@@ -1011,7 +1015,7 @@ function App() {
     const updated = [tx, ...txsRef.current];
     txsRef.current = updated;
     setTransactions(updated);
-    await saveTx(updated);
+    await saveTxAdd(tx);
     setShowKoreksiModal(false); setKoreksiInput("");
     showToast(`Koreksi ${fmtRp(Math.abs(selisih))} berhasil ✅`);
   };
@@ -1020,7 +1024,7 @@ function App() {
     const updated = txsRef.current.filter(t => t.id !== id);
     txsRef.current = updated;
     setTransactions(updated);
-    await saveTx(updated);
+    await saveTxRemove(id);
     showToast("Transaksi dihapus 🗑️", "err");
   };
 
