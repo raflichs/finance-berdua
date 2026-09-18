@@ -5,11 +5,9 @@ const KATEGORI = {
   Pemasukan: ["Gaji", "Bonus", "Lainnya"],
   Pengeluaran: ["Makan", "Transport", "Belanja", "Tagihan", "Nongkrong", "Hiburan", "Tabungan", "Pulsa/Kuota", "Lainnya"],
 };
-const EMOJI = {
-  Gaji: "💼", Bonus: "🎁", Makan: "🍜", Transport: "🚗",
-  Belanja: "🛍️", Tagihan: "📋", Nongkrong: "☕", Hiburan: "🎮",
-  Tabungan: "🐷", "Pulsa/Kuota": "📱", Lainnya: "📦",
-};
+const ICON_MAP = {Makan:"restaurant",Transport:"directions_car",Belanja:"shopping_bag",Tagihan:"receipt_long",Nongkrong:"local_cafe",Hiburan:"sports_esports",Tabungan:"savings","Pulsa/Kuota":"smartphone",Lainnya:"category",Gaji:"work",Bonus:"card_giftcard"};
+const iconFor = k => ICON_MAP[k] || "category";
+const EMOJI = ICON_MAP;
 const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 const pad2 = n => String(n).padStart(2, "0");
 const toLocalDateKey = (date = new Date()) =>
@@ -96,10 +94,11 @@ body{background:#060608; overflow-x: hidden;}
 .screen{flex:1;display:flex;flex-direction:column;}
 .scroll{flex:1;overflow-y:auto;padding:0 16px calc(112px + env(safe-area-inset-bottom));}
 
-/* ── Header ── */
-.hdr{padding:calc(48px + env(safe-area-inset-top)) 16px 8px;display:flex;justify-content:space-between;align-items:flex-end;}
-.hdr-sub{font-size:13px;color:rgba(255,255,255,.35);font-weight:600;letter-spacing:-.1px;}
-.hdr-title{font-size:28px;font-weight:700;color:#fff;margin-top:2px;letter-spacing:-.6px;}
+/* ── Header unified ── */
+.hdr{padding:calc(14px + env(safe-area-inset-top)) 16px 12px;min-height:56px;border-bottom:.5px solid rgba(255,255,255,.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);background:rgba(6,6,8,.7);display:flex;justify-content:space-between;align-items:flex-end;}
+.hdr--plain{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:none;}
+.hdr-sub{font-size:12px;font-weight:600;color:rgba(255,255,255,.45);letter-spacing:-.1px;}
+.hdr-title{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.4px;}
 .hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
 
 /* ── Status badges ── */
@@ -113,36 +112,14 @@ body{background:#060608; overflow-x: hidden;}
 .dot-off{background:#ff3b30;}
 .dot-pur{background:#a78bfa;animation:pulse 2s infinite;}
 
-/* ── Premium Glass Styles ── */
-.premium-glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-.raised-card {
-    background: #111114;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    position: relative;
-    overflow: hidden;
-}
-.raised-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at top right, rgba(255,255,255,0.03), transparent 70%);
-    pointer-events: none;
-}
-.glow-text-error {
-    text-shadow: 0 0 15px rgba(255, 90, 95, 0.3);
-}
-.glow-text-tertiary {
-    text-shadow: 0 0 15px rgba(71, 226, 102, 0.3);
-}
-
-/* ── Balance card — glowing glass + indigo tint ── */
-.balance-card{margin:12px 16px 20px;background:linear-gradient(135deg, rgba(88,86,214,.12), rgba(167,139,250,.04));border-radius:24px;padding:22px;border:1px solid rgba(88,86,214,.25);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);position:relative;overflow:hidden;box-shadow:0 12px 32px -8px rgba(88,86,214,.2), inset 0 1px 1px rgba(255,255,255,0.1);}
+/* ponytail: ceiling blur 2 levels only (16 base, 24 hero), upgrade when need extra depth */
+.premium-glass{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.24);}
+.raised-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.24);position:relative;overflow:hidden;}
+.glow-text-error{text-shadow:0 0 15px rgba(255,90,95,0.3);}
+.glow-text-tertiary{text-shadow:0 0 15px rgba(71,226,102,0.3);}
+.card-glass{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.24);}
+.card-glass--hero{background:linear-gradient(135deg,rgba(88,86,214,.14),rgba(167,139,250,.06));border:1px solid rgba(88,86,214,.22);border-radius:20px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 12px 32px -8px rgba(88,86,214,.2),inset 0 1px 1px rgba(255,255,255,.1);}
+.balance-card{margin:12px 16px 20px;background:linear-gradient(135deg,rgba(88,86,214,.14),rgba(167,139,250,.06));border-radius:20px;padding:22px;border:1px solid rgba(88,86,214,.22);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);position:relative;overflow:hidden;box-shadow:0 12px 32px -8px rgba(88,86,214,.2),inset 0 1px 1px rgba(255,255,255,.1);}
 .balance-card::before{content:'';position:absolute;top:-60px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(88,86,214,.22) 0%,transparent 70%);pointer-events:none;}
 .bal-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:600;letter-spacing:-.1px;}
 .bal-amount{font-size:38px;font-weight:700;color:#fff;margin:6px 0 18px;letter-spacing:-1.5px;text-shadow:0 2px 10px rgba(0,0,0,0.3);}
@@ -160,9 +137,10 @@ body{background:#060608; overflow-x: hidden;}
 .cat-bar-bg{flex:1;background:rgba(255,255,255,.06);border-radius:999px;height:4px;}
 .cat-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#5856d6,#a78bfa);}
 
-/* ── Transaction items ── */
-.tx-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:.5px solid rgba(255,255,255,.05);transition:background .2s;}
-.tx-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);}
+/* ── List unified ── */
+.list-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:.5px solid rgba(255,255,255,.06);}
+.tx-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:.5px solid rgba(255,255,255,.06);}
+.tx-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);}
 .tx-info{flex:1;min-width:0;}
 .tx-desc{font-size:15px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;}
 .tx-meta{font-size:12px;color:rgba(255,255,255,.35);margin-top:2px;font-weight:400;}
@@ -171,8 +149,8 @@ body{background:#060608; overflow-x: hidden;}
 .del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.3;padding:4px;line-height:1;transition:opacity .15s;}
 .del-btn:hover{opacity:0.8;}
 
-/* ── Form card — glass ── */
-.form-card{background:rgba(20,20,25,.55);border-radius:24px;border:1px solid rgba(255,255,255,.07);padding:22px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 12px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,0.05);}
+/* ── Form card — composes card-glass ── */
+.form-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:22px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.24);}
 .toggle-row{display:flex;background:rgba(0,0,0,.35);border-radius:14px;padding:3px;margin-bottom:20px;border:1px solid rgba(255,255,255,.05);}
 .tog-btn{flex:1;padding:11px;border-radius:11px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:none;color:rgba(255,255,255,.35);letter-spacing:-.2px;}
 .tog-in{background:rgba(52,199,89,.15)!important;color:#34c759!important;}
@@ -192,12 +170,24 @@ input[type=number]{-moz-appearance:textfield;}
 .submit-btn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none;}
 .submit-btn:active{opacity:.85;transform:scale(0.98);}
 
-/* ── Filters ── */
-.filter-row{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;}
-.filter-pill{flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:999px;padding:8px 16px;font-size:12px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;white-space:nowrap;letter-spacing:-.1px;transition:all .2s;}
-.filter-pill.sel{background:rgba(88,86,214,.18);border-color:rgba(88,86,214,.5);color:#a78bfa;box-shadow:0 0 8px rgba(88,86,214,0.12);}
+/* ── Pill unified — soft iOS capsule (ponytail: 1 blur level, upgrade when need segmented-control) ── */
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:500;letter-spacing:-.15px;background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.10);color:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:all .25s cubic-bezier(.32,0,.67,0);}
+.pill:active{transform:scale(.96);}
+.pill.sel,.pill--active{background:rgba(88,86,214,.18);border-color:rgba(88,86,214,.35);color:#c4b5fd;box-shadow:0 4px 16px rgba(88,86,214,.15), inset 0 1px 0 rgba(255,255,255,.08);}
+.filter-row{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.filter-pill{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:500;letter-spacing:-.15px;background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.10);color:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:all .25s cubic-bezier(.32,0,.67,0);}
+.filter-pill:active{transform:scale(.96);}
+.filter-pill.sel{background:rgba(88,86,214,.18);border-color:rgba(88,86,214,.35);color:#c4b5fd;box-shadow:0 4px 16px rgba(88,86,214,.15), inset 0 1px 0 rgba(255,255,255,.08);}
 .export-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:-.1px;transition:all .2s;}
 .export-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,0.12);}
+/* ── Swipe ── */
+.swipe-wrap{position:relative;overflow:hidden;}
+.swipe-actions{position:absolute;inset:0 0 0 auto;display:flex;}
+.swipe-actions button{width:84px;border:none;color:#fff;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;}
+.act-edit{background:#5856d6;}
+.act-del{background:#ff3b30;}
+.swipe-content{position:relative;background:#060608;transition:transform 300ms cubic-bezier(.32,0,.67,0);will-change:transform;}
+@media (prefers-reduced-motion: reduce){.swipe-content{transition:none;}}
 
 /* ── Toast ── */
 .toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 20px;font-size:13px;font-weight:600;color:#fff;z-index:9999;white-space:nowrap;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);animation:toastIn .2s ease;letter-spacing:-.2px;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
@@ -230,9 +220,9 @@ input[type=number]{-moz-appearance:textfield;}
 .modal-sub{font-size:14px;color:rgba(255,255,255,.4);margin-bottom:20px;line-height:1.5;text-align:center;letter-spacing:-.1px;}
 .modal-close{width:100%;padding:14px;border-radius:15px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px;letter-spacing:-.2px;}
 
-/* Debt screens */
-.debt-bg{background:#111827;background-image:radial-gradient(at 0% 0%, rgba(15,23,42,.95) 0, transparent 50%),radial-gradient(at 50% 0%, rgba(31,41,55,.55) 0, transparent 52%),radial-gradient(at 100% 0%, rgba(15,23,42,.9) 0, transparent 50%);}
-.debt-card{background:rgba(17,24,39,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);box-shadow:0 18px 48px rgba(0,0,0,.28);width:100%;max-width:430px;margin-left:auto;margin-right:auto;}
+/* Debt screens — alias card-glass */
+.debt-bg{background:#060608;}
+.debt-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.24);width:100%;max-width:430px;margin-left:auto;margin-right:auto;}
 .debt-input{background:rgba(255,255,255,.05);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);}
 .debt-muted-btn{background:#4b5563;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
 .debt-pill{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#d1d5db;border-radius:999px;padding:6px 16px;font-size:13px;font-weight:600;}
@@ -364,11 +354,46 @@ function App() {
   const [exportModal, setExportModal] = useState(false);
   const [importModal, setImportModal] = useState(null);
   const [form, setForm] = useState({ tanggal: today(), jenis: "Pengeluaran", kategori: "Makan", deskripsi: "", nominal: "", account: "QRIS" });
-  const [cashForm, setCashForm] = useState({ tanggal: today(), mode: "withdraw", deskripsi: "Tarik cash", nominal: "" });
+  const [cashForm, setCashForm] = useState({ tanggal: today(), mode: "withdraw", deskripsi: "Tarik cash", nominal: "", adminFee: "" });
+  // ponytail: ceiling simple string formatted, upgrade when need numeric separate state
+  const [onboardingQRIS, setOnboardingQRIS] = useState("");
+  const [onboardingCash, setOnboardingCash] = useState("");
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [showKoreksiModal, setShowKoreksiModal] = useState(false);
+  const [koreksiInput, setKoreksiInput] = useState("");
   const [sheetUrl, setSheetUrl] = useState("");
   const [showGSheetModal, setShowGSheetModal] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState("");
+  // ponytail: ceiling swipe state in ref (no React state), upgrade when need gesture history/animation state
+  const swipeRef = useRef({sx:0,sy:0,dx:0,locked:null,t0:0});
+  const handleScreenTouchStart = e => {
+    if(e.target.closest && e.target.closest('[data-swipe]')){ swipeRef.current.locked='v'; return; }
+    const t=e.touches[0]; swipeRef.current={sx:t.clientX,sy:t.clientY,dx:0,locked:null,t0:Date.now()};
+  };
+  const handleScreenTouchMove = e => {
+    const r=swipeRef.current; if(r.locked==='v') return;
+    const t=e.touches[0]; const ddx=t.clientX-r.sx; const dy=t.clientY-r.sy;
+    if(!r.locked){ if(Math.abs(ddx)<8&&Math.abs(dy)<8) return; r.locked=Math.abs(ddx)>Math.abs(dy)?'h':'v'; }
+    if(r.locked==='h') r.dx=ddx;
+  };
+  const handleScreenTouchEnd = () => {
+    const r=swipeRef.current; if(r.locked!=='h') return;
+    const dx=r.dx; const dt=Date.now()-r.t0; const v=Math.abs(dx)/Math.max(1,dt);
+    if(r.sx<24 && dx>60){
+      if(tab==='savings'){ try{navigator.vibrate&&navigator.vibrate(10)}catch{} setTab('dashboard'); return; }
+      if(tab==='debt'){
+        try{navigator.vibrate&&navigator.vibrate(10)}catch{}
+        if(debtView==='payment') setDebtView('detail');
+        else if(debtView==='detail'){ setDebtView('list'); setSelectedDebtId(null); }
+        else setTab('dashboard');
+        return;
+      }
+    }
+    const order=['dashboard','input','history']; if(!order.includes(tab)) return;
+    if(dx<-60 || (dx<-20 && v>0.35)){ try{navigator.vibrate&&navigator.vibrate(10)}catch{} const i=order.indexOf(tab); setTab(order[(i+1)%order.length]); }
+    else if(dx>60 || (dx>20 && v>0.35)){ try{navigator.vibrate&&navigator.vibrate(10)}catch{} const i=order.indexOf(tab); setTab(order[(i-1+order.length)%order.length]); }
+  };
 
   // ── Input sub-tab ──
   const [inputSubTab, setInputSubTab] = useState("normal"); // "normal" | "split"
@@ -909,6 +934,9 @@ function App() {
     const nominal = parseMoney(cashForm.nominal);
     if (!cashForm.nominal || nominal <= 0) { showToast("Nominal cash harus valid!", "err"); return; }
     if (!cashForm.deskripsi.trim()) { showToast("Deskripsi harus diisi!", "err"); return; }
+    const adminFee = parseMoney(cashForm.adminFee);
+    // ponytail: ceiling 1 admin tx per move, upgrade when need multi-fee / split account
+    if (cashForm.adminFee && cashForm.adminFee.trim() !== "" && adminFee <= 0) { showToast("Biaya admin harus valid!", "err"); return; }
     const isWithdraw = cashForm.mode === "withdraw";
     const newTx = {
       tanggal: cashForm.tanggal,
@@ -921,14 +949,71 @@ function App() {
       id: Date.now(),
       addedBy: myName,
     };
-    const updated = [newTx, ...txsRef.current];
+    // ponytail: single saveTx with combined list, upgrade when need atomic transaction
+    const toSave = [newTx];
+    if (adminFee > 0) {
+      toSave.push({
+        id: Date.now() + 1,
+        tanggal: cashForm.tanggal,
+        jenis: "Pengeluaran",
+        kategori: "Tagihan",
+        deskripsi: isWithdraw ? "Biaya admin tarik cash" : "Biaya admin setor cash",
+        nominal: adminFee,
+        account: "QRIS",
+        addedBy: myName,
+      });
+    }
+    const updated = [...toSave, ...txsRef.current];
     txsRef.current = updated;
     setTransactions(updated);
     await saveTx(updated);
-    sendNotif(`Atur cash ${myName}`, `${newTx.deskripsi} - ${fmtRp(nominal)}`);
-    setCashForm({ tanggal: today(), mode: "withdraw", deskripsi: "Tarik cash", nominal: "" });
-    showToast("Cash berhasil diatur!");
+    sendNotif(`Atur cash ${myName}`, `${newTx.deskripsi} - ${fmtRp(nominal)}${adminFee>0?` + admin ${fmtRp(adminFee)}`:""}`);
+    setCashForm({ tanggal: today(), mode: "withdraw", deskripsi: "Tarik cash", nominal: "", adminFee: "" });
+    showToast(adminFee>0 ? "Cash + biaya admin tercatat! ✅" : "Cash berhasil diatur! ✅");
     setTab("history");
+  };
+
+  // ── Onboarding Saldo Awal ──
+  // ponytail: ceiling 2 tx Lainnya Pemasukan, upgrade when need edit-after-create
+  const handleOnboardingSave = async () => {
+    const qris = parseMoney(onboardingQRIS);
+    const cash = parseMoney(onboardingCash);
+    if (qris <= 0 && cash <= 0) { showToast("Isi minimal satu saldo!", "err"); return; }
+    const now = Date.now();
+    const txs = [];
+    if (qris > 0) txs.push({ id: now, tanggal: today(), jenis: "Pemasukan", kategori: "Lainnya", deskripsi: "Saldo Awal QRIS", nominal: qris, account: "QRIS", addedBy: myName });
+    if (cash > 0) txs.push({ id: now + 1, tanggal: today(), jenis: "Pemasukan", kategori: "Lainnya", deskripsi: "Saldo Awal Cash", nominal: cash, account: "Cash", addedBy: myName });
+    const updated = [...txs, ...txsRef.current];
+    txsRef.current = updated;
+    setTransactions(updated);
+    await saveTx(updated);
+    setOnboardingQRIS(""); setOnboardingCash("");
+    showToast("Saldo awal tersimpan! ✅");
+  };
+
+  // ── Koreksi Saldo QRIS ──
+  const handleKoreksiSaldo = async () => {
+    const target = parseMoney(koreksiInput);
+    if (!koreksiInput || koreksiInput.trim() === "") { showToast("Isi saldo M-banking dulu!", "err"); return; }
+    const currentQRIS = walletData.QRIS;
+    const selisih = target - currentQRIS;
+    if (selisih === 0) { showToast("Sudah balance ✅"); setShowKoreksiModal(false); return; }
+    const tx = {
+      id: Date.now(),
+      tanggal: today(),
+      jenis: selisih > 0 ? "Pemasukan" : "Pengeluaran",
+      kategori: "Lainnya",
+      deskripsi: "Penyesuaian Saldo QRIS",
+      nominal: Math.abs(selisih),
+      account: "QRIS",
+      addedBy: myName,
+    };
+    const updated = [tx, ...txsRef.current];
+    txsRef.current = updated;
+    setTransactions(updated);
+    await saveTx(updated);
+    setShowKoreksiModal(false); setKoreksiInput("");
+    showToast(`Koreksi ${fmtRp(Math.abs(selisih))} berhasil ✅`);
   };
 
   const handleDelete = async id => {
@@ -1186,11 +1271,14 @@ function App() {
   );
 
   const jenisKat = KATEGORI[form.jenis];
+  // ponytail: showOnboarding derived only, upgrade when need persist dismiss per user
+  const showOnboarding = transactions.length === 0 && nameSet && !syncing && !onboardingDismissed;
   const tabProps = {
     allMonths, cashForm, dashData, dashMonth, debtForm, debtList, debtView, editDebtForm, filterJenis,
     filterMonth, form, handleAddDebt, handleDelete, handleDeleteDebt, handleEditDebt,
-    handleCashMove, handleExport, handleExportGSheet, handleMarkLunas, handleSavePayment, handleSubmit, handleTemplateUpload,
-    setEditTx, syncing, showDebtModal, showEditDebtModal, showCatEdit,
+    handleCashMove, handleExport, handleExportGSheet, handleKoreksiSaldo, handleMarkLunas, handleOnboardingSave, handleSavePayment, handleSubmit, handleTemplateUpload,
+    koreksiInput, onboardingCash, onboardingQRIS,
+    setEditTx, syncing, showDebtModal, showEditDebtModal, showCatEdit, showKoreksiModal, showOnboarding,
     hideBalance, histFiltered, histGrouped, histPemasukan, histPengeluaran, inputSubTab,
     isSearching, jenisKat, myName, oldMonthMin, oldTxCount, online, partnerName,
     partnerOnline, paymentCatatan, paymentNominal, paymentTanggal, sbAddFriend, sbAddItem,
@@ -1199,13 +1287,13 @@ function App() {
     sbPaidMap, sbReset, sbScanProgress, sbScanReceipt, sbScanning, sbSelectedFor, sbStep,
     sbToggleAssign, sbTotals, sbUnassigned, search, selectedDebt, selectedDebtId,
     setCashForm, setDashMonth, setDebtForm, setDebtView, setEditDebtForm, setFilterJenis, setFilterMonth,
-    setForm, setHideBalance, setInputSubTab, setPaymentCatatan, setPaymentNominal,
+    setForm, setHideBalance, setInputSubTab, setKoreksiInput, setOnboardingCash, setOnboardingQRIS, setPaymentCatatan, setPaymentNominal,
     setPaymentTanggal, setSbAssigned, setSbExported, setSbFriendInput,
     setSbFriends, setSbInputMode, setSbItemName, setSbItemPrice, setSbItems, setSbPaidMap,
     setSbScanning, setSbScanProgress, setSbSelectedFor, setSbStep, setSearch, setSelectedDebtId,
-    setShowCatEdit, setShowDebtMenu, setShowDebtModal, setShowEditDebtModal, setShowGSheetModal, setShowOld,
+    setShowCatEdit, setShowDebtMenu, setShowDebtModal, setShowEditDebtModal, setShowGSheetModal, setShowKoreksiModal, setShowOld,
     setShowWeddingEdit, setTab, setWeddingActiveSection, setWeddingEditForm, setEditingCats,
-    showDebtMenu, showOld, showToast, showWeddingEdit, transactions, weddingActiveSection,
+    showDebtMenu, showOld, showToast, showWeddingEdit, transactions, walletData, weddingActiveSection,
     weddingEditForm, weddingSettings
   };
 
@@ -1214,8 +1302,47 @@ function App() {
       <style>{CSS}</style>
       {syncing && <div className="sync-bar" />}
       {toast && <div className={`toast ${toast.type === "err" ? "err" : ""}`}>{toast.msg}</div>}
+      {/* ── Onboarding Saldo Awal (blocking) ── */}
+      {showOnboarding && (
+        <div className="modal-overlay" style={{ zIndex: 5000 }}>
+          <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 36, marginBottom: 8, textAlign: "center" }}>🏦</div>
+            <div className="modal-title">Set Saldo Awal</div>
+            <div className="modal-sub">Biar balance sama M-banking</div>
+            <div className="field-label">Saldo QRIS awal (Rp)</div>
+            <input className="inp" inputMode="numeric" placeholder="0" value={onboardingQRIS}
+              onChange={e => { const raw = e.target.value.replace(/\D/g, ""); setOnboardingQRIS(raw ? parseInt(raw, 10).toLocaleString("id-ID") : ""); }} />
+            <div className="field-label">Saldo Cash awal (Rp)</div>
+            <input className="inp" inputMode="numeric" placeholder="0" value={onboardingCash}
+              onChange={e => { const raw = e.target.value.replace(/\D/g, ""); setOnboardingCash(raw ? parseInt(raw, 10).toLocaleString("id-ID") : ""); }} />
+            <button className="submit-btn" disabled={parseMoney(onboardingQRIS)===0 && parseMoney(onboardingCash)===0} onClick={handleOnboardingSave} style={{ marginBottom: 10 }}>Simpan Saldo Awal</button>
+            <button className="modal-close" onClick={() => { setOnboardingDismissed(true); showToast("Onboarding dilewati — saldo 0"); }}>Lewati (saldo 0)</button>
+          </div>
+        </div>
+      )}
+      {/* ── Koreksi Saldo Modal ── */}
+      {showKoreksiModal && (
+        <div className="modal-overlay" onClick={() => setShowKoreksiModal(false)}>
+          <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 36, marginBottom: 8, textAlign: "center" }}>⚖️</div>
+            <div className="modal-title">Koreksi Saldo QRIS</div>
+            <div className="modal-sub">QRIS sekarang {fmtRp(walletData.QRIS)} — masukkan saldo M-banking yang benar</div>
+            <div className="field-label">Saldo M-banking sekarang (Rp)</div>
+            <input className="inp" inputMode="numeric" placeholder="0" value={koreksiInput}
+              onChange={e => { const raw = e.target.value.replace(/\D/g, ""); setKoreksiInput(raw ? parseInt(raw, 10).toLocaleString("id-ID") : ""); }}
+              autoFocus />
+            {koreksiInput && (
+              <div style={{ fontSize: 12, color: parseMoney(koreksiInput) - walletData.QRIS === 0 ? "#34c759" : "rgba(255,255,255,.5)", margin: "-8px 0 16px", textAlign: "center" }}>
+                Selisih: {fmtRp(parseMoney(koreksiInput) - walletData.QRIS)} {parseMoney(koreksiInput) - walletData.QRIS === 0 ? "— sudah balance ✅" : parseMoney(koreksiInput) - walletData.QRIS > 0 ? "akan +Pemasukan" : "akan -Pengeluaran"}
+              </div>
+            )}
+            <button className="submit-btn" onClick={handleKoreksiSaldo} style={{ marginBottom: 10 }}>Simpan Koreksi</button>
+            <button className="modal-close" onClick={() => { setShowKoreksiModal(false); setKoreksiInput(""); }}>Batal</button>
+          </div>
+        </div>
+      )}
 
-      <div className="screen">
+      <div className="screen" onTouchStart={handleScreenTouchStart} onTouchMove={handleScreenTouchMove} onTouchEnd={handleScreenTouchEnd}>
 
         {/* ─── DASHBOARD ─── */}
         {tab === "dashboard" && <DashboardTab {...tabProps} />}
@@ -1276,7 +1403,7 @@ function App() {
                   <div key={k}
                     onClick={() => setEditTx(t => ({ ...t, kategori: k }))}
                     style={{ background: editTx.kategori === k ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.04)", border: `1.5px solid ${editTx.kategori === k ? "rgba(255,255,255,.8)" : "rgba(255,255,255,.08)"}`, borderRadius: 12, padding: "10px 6px", textAlign: "center", fontSize: 11, fontWeight: 700, color: editTx.kategori === k ? "#fff" : "rgba(255,255,255,.3)", cursor: "pointer", lineHeight: 1.4 }}>
-                    <div style={{ fontSize: 22, marginBottom: 4 }}>{EMOJI[k]}</div>{k}
+                    <span className="material-symbols-outlined" style={{fontSize:22,display:"block",marginBottom:4}}>{iconFor(k)}</span>{k}
                   </div>
                 ))}
               </div>

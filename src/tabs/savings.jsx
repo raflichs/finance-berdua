@@ -85,14 +85,15 @@ function SavingsTab(props) {
 
               return (<>
               <div className="hdr">
-                <div>
-                  <button onClick={() => setTab("dashboard")} style={{background:"none",border:"none",color:"#a78bfa",cursor:"pointer",fontSize:13,fontWeight:700,padding:0,marginBottom:8}}>← Dashboard</button>
-                  <div className="hdr-sub">Impian Berdua 💑</div>
-                  <div className="hdr-title">Dana Nikah 💍</div>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <button onClick={()=>setTab("dashboard")} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",width:36,height:36,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:"#fff",backdropFilter:"blur(12px)"}} aria-label="Kembali ke Dashboard"><span className="material-symbols-outlined" style={{fontSize:18}}>arrow_back_ios_new</span></button>
+                  <div>
+                    <div className="hdr-sub">Impian berdua</div>
+                    <div className="hdr-title">Dana Nikah</div>
+                  </div>
                 </div>
-                <button onClick={()=>{ setWeddingEditForm({ target: wTotal.toLocaleString("id-ID"), tanggal: wDate }); setShowWeddingEdit(true); }}
-                  style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:999,padding:"7px 14px",color:"rgba(255,255,255,.6)",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer"}}>
-                  ⚙️ Edit Target
+                <button className="pill" onClick={()=>{ setWeddingEditForm({ target: wTotal.toLocaleString("id-ID"), tanggal: wDate }); setShowWeddingEdit(true); }}>
+                  <span className="material-symbols-outlined" style={{fontSize:14,marginRight:6}}>tune</span>Edit target
                 </button>
               </div>
               <div className="scroll">
@@ -116,13 +117,12 @@ function SavingsTab(props) {
                   </div>
                 ) : (
                   <div onClick={()=>{ setWeddingEditForm({ target: wTotal.toLocaleString("id-ID"), tanggal: "" }); setShowWeddingEdit(true); }}
-                    style={{background:"rgba(219,39,119,.07)",border:"1.5px dashed rgba(219,39,119,.4)",borderRadius:20,padding:"14px 20px",marginBottom:14,display:"flex",alignItems:"center",gap:14,cursor:"pointer"}}>
-                    <div style={{fontSize:28}}>📅</div>
+                    className="card-glass" style={{borderStyle:"dashed",padding:"14px 20px",marginBottom:14,display:"flex",alignItems:"center",gap:14,cursor:"pointer"}}>
+                    <span className="material-symbols-outlined" style={{fontSize:28,opacity:.6}}>calendar_today</span>
                     <div>
-                      <div style={{fontSize:13,fontWeight:700,color:"rgba(219,39,119,.9)"}}>Set Tanggal Hari H</div>
-                      <div style={{fontSize:11,color:"rgba(255,255,255,.3)",marginTop:2}}>Biar bisa hitung nabung per bulan</div>
+                      <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.9)"}}>Kapan hari H? Set tanggal biar kehitung nabung per bulan.</div>
                     </div>
-                    <div style={{marginLeft:"auto",fontSize:18,color:"rgba(219,39,119,.5)"}}>›</div>
+                    <span className="material-symbols-outlined" style={{marginLeft:"auto",opacity:.5}}>chevron_right</span>
                   </div>
                 )}
 
@@ -146,7 +146,7 @@ function SavingsTab(props) {
                 {weddingActiveSection==="overview" && <>
 
                   {/* ── Progress Ring Card ── */}
-                  <div style={{background:"linear-gradient(135deg,rgba(219,39,119,.1),rgba(167,139,250,.08))",border:"1px solid rgba(219,39,119,.2)",borderRadius:24,padding:"24px 20px",marginBottom:16,backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",boxShadow:"0 12px 32px -8px rgba(219,39,119,.15), inset 0 1px 1px rgba(255,255,255,0.08)",position:"relative",overflow:"hidden"}}>
+                  <div className="card-glass--hero" style={{padding:"24px 20px",marginBottom:16,position:"relative",overflow:"hidden"}}>
                     <div style={{position:"absolute",top:-50,right:-30,width:160,height:160,background:"radial-gradient(circle,rgba(219,39,119,.15) 0%,transparent 70%)",pointerEvents:"none"}}/>
                     <div style={{display:"flex",alignItems:"center",gap:24}}>
                       {/* Donut Ring */}

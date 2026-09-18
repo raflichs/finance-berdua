@@ -16,7 +16,7 @@ function DashboardTab(props) {
     setPaymentTanggal, setSbAssigned, setSbExported, setSbFriendInput,
     setSbFriends, setSbInputMode, setSbItemName, setSbItemPrice, setSbItems, setSbPaidMap,
     setSbScanning, setSbScanProgress, setSbSelectedFor, setSbStep, setSearch, setSelectedDebtId,
-    setShowCatEdit, setShowDebtMenu, setShowDebtModal, setShowEditDebtModal, setShowGSheetModal, setShowOld,
+    setShowCatEdit, setShowDebtMenu, setShowDebtModal, setShowEditDebtModal, setShowGSheetModal, setShowKoreksiModal, setShowOld,
     setShowWeddingEdit, setTab, setWeddingActiveSection, setWeddingEditForm, setEditingCats,
     showDebtMenu, showOld, showToast, showWeddingEdit, transactions, weddingActiveSection,
     weddingEditForm, weddingSettings
@@ -25,10 +25,10 @@ function DashboardTab(props) {
 
               <>
                 {/* ── Dashboard Top (Reverted to Original) ── */}
-                <div className="hdr" style={{paddingTop: "max(24px, env(safe-area-inset-top))"}}>
+                <div className="hdr">
                   <div>
-                    <div className="hdr-title" style={{fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.4)"}}>Finance Berdua 👩‍❤️‍👨</div>
-                    <div style={{fontSize:24,fontWeight:800,marginTop:4}}>Halo, {myName}!</div>
+                    <div className="hdr-sub">Finance Berdua</div>
+                    <div className="hdr-title">Halo, {myName}!</div>
                   </div>
                   <div className="hdr-right">
                     <div className={`badge ${online?"badge-on":"badge-off"}`}>
@@ -56,18 +56,18 @@ function DashboardTab(props) {
                     </div>
                   </div>
 
-                  {/* Balance card */}
+                  {/* Balance card — ponytail: 1 tweak only, upgrade when full design token */}
                   <div className="balance-card">
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                    <div className="bal-label">Total Uang</div>
+                    <div className="bal-label">Total Uang (QRIS+Cash)</div>
                       <span className="material-symbols-outlined" style={{opacity:0.5,fontSize:18,cursor:"pointer"}} onClick={()=>setHideBalance(!hideBalance)}>{hideBalance?"visibility_off":"visibility"}</span>
                     </div>
                     <div className="bal-amount">{hideBalance?"Rp ••••••••":fmtRp(dashData.wallet.total)}</div>
-                    
                     <div className="bal-row">
-                      <div className="mini-stat">
+                      <div className="mini-stat" style={{ borderColor: "rgba(88,86,214,.35)", background: "rgba(88,86,214,.10)" }}>
                         <div className="mini-label"><div className="mini-dot" style={{background:"#0a84ff"}}/>QRIS</div>
-                        <div className="mini-val" style={{color:"#60a5fa"}}>{hideBalance?"Rp ••••":fmtRp(dashData.wallet.QRIS)}</div>
+                        <div className="mini-val" style={{color:"#60a5fa", fontSize:16}}>{hideBalance?"Rp ••••":fmtRp(dashData.wallet.QRIS)}</div>
+                        <div style={{fontSize:10, color:"rgba(167,139,250,.9)", fontWeight:600, marginTop:4}}>Bandingkan ini dengan M-banking</div>
                       </div>
                       <div className="mini-stat">
                         <div className="mini-label"><div className="mini-dot" style={{background:"#fbbf24"}}/>CASH</div>
@@ -84,6 +84,7 @@ function DashboardTab(props) {
                         <div className="mini-val" style={{color:"#ff3b30"}}>{hideBalance?"Rp ••••":fmtRp(dashData.pengeluaran)}</div>
                       </div>
                     </div>
+                    <button onClick={() => setShowKoreksiModal(true)} style={{ marginTop:12, width:"100%", padding:"10px", borderRadius:12, border:"1px solid rgba(167,139,250,.3)", background:"rgba(88,86,214,.12)", color:"#a78bfa", fontFamily:"inherit", fontSize:12, fontWeight:700, cursor:"pointer" }}>⚖️ Koreksi Saldo</button>
                   </div>
 
                   {/* ── Peringatan Hutang Jatuh Tempo ── */}
@@ -203,7 +204,7 @@ function DashboardTab(props) {
                               <div key={kat} className="flex items-center justify-between">
                                 <div className="flex items-center gap-xs">
                                   <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: c }}></div>
-                                  <span className="text-[14px]">{EMOJI[kat]}</span>
+                                  <span className="material-symbols-outlined" style={{fontSize:18,color:c}}>{iconFor(kat)}</span>
                                   <span className="text-body-sm font-medium">{kat}</span>
                                 </div>
                                 <span className="text-body-sm font-bold">{pct}%</span>
@@ -256,9 +257,7 @@ function DashboardTab(props) {
                         {dashData.txs.slice(0, 5).map(t => (
                           <div key={t.id} className="flex items-center justify-between p-md hover:bg-white/5 transition-colors cursor-pointer" onClick={() => t.jenis !== "CashMove" && setEditTx({...t, nominal:t.nominal.toLocaleString("id-ID")})}>
                             <div className="flex items-center gap-md">
-                              <div className="w-12 h-12 rounded-xl bg-on-surface-variant/10 flex items-center justify-center text-xl">
-                                {t.jenis==="CashMove" ? "Cash" : EMOJI[t.kategori]}
-                              </div>
+                              <div className="tx-icon"><span className="material-symbols-outlined" style={{fontSize:18,color:t.jenis==="CashMove"?"#60a5fa":KAT_COLORS[t.kategori]||"#a78bfa"}}>{t.jenis==="CashMove"?"payments":iconFor(t.kategori)}</span></div>
                               <div>
                                 <p className="font-body-lg text-body-lg font-medium">{t.deskripsi}</p>
                                 <p className="font-body-sm text-body-sm text-on-surface-variant">{fmtDate(t.tanggal)} • {t.jenis==="CashMove" ? `${t.fromAccount} ke ${t.toAccount}` : `${t.kategori} • ${t.account||"QRIS"}`}</p>
