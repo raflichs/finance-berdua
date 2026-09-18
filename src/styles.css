@@ -1,0 +1,79 @@
+    html,body,#root{height:100%;margin:0;padding:0;background:#060608;}
+    .glass-card {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .ios-shadow { box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+
+    @media (min-width: 900px) {
+      html, body, #root { min-height: 100%; }
+      body { background: #060608; }
+      .app {
+        width: min(100% - 48px, 1180px) !important;
+        max-width: 1180px !important;
+        min-height: 100dvh;
+      }
+      .screen {
+        width: 100%;
+      }
+      .hdr,
+      .scroll {
+        width: min(100%, 960px);
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hdr {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+      }
+      .scroll {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+        padding-bottom: 128px !important;
+      }
+      .balance-card {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      .form-card {
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .kat-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .filter-row {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      .modal-overlay {
+        align-items: center !important;
+        padding: 24px;
+      }
+      .modal-sheet {
+        max-width: 560px !important;
+        border-radius: 26px !important;
+        padding: 28px 28px 32px !important;
+      }
+      nav.fixed.bottom-0 {
+        width: min(100% - 48px, 960px) !important;
+        max-width: 960px !important;
+        left: 50% !important;
+        border-radius: 24px 24px 0 0 !important;
+      }
+      .debt-card {
+        max-width: 860px !important;
+      }
+      .app .max-w-lg,
+      .app .max-w-2xl {
+        max-width: 860px !important;
+      }
+    }

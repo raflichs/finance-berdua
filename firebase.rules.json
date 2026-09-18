@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "finance_berdua": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
