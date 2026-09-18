@@ -1,92 +1,120 @@
 # 🚀 Panduan Deploy Finance Berdua
 
+> Build: `npm run build` → `dist/` | Worker: `worker.js` + `wrangler.jsonc` | DB: `finance_berdua` @ `asia-southeast1`
+
 ## Yang Lo Butuhin
-- Akun Google (buat Firebase)
-- Akun Netlify — gratis di netlify.com
+- Akun Google (Firebase)
+- Akun Cloudflare (Worker) atau Netlify (alternatif)
+- Node.js 18+
 
 ---
 
 ## LANGKAH 1 — Setup Firebase (±5 menit)
 
-1. Buka **console.firebase.google.com**
-2. Klik **"Add project"** → kasih nama (misal: "finance-berdua") → klik Continue sampai selesai
-3. Di sidebar kiri, klik ⚙️ **Project Settings**
-4. Scroll ke bawah ke **"Your apps"** → klik ikon **`</>`** (Web)
-5. Kasih nama app (misal: "finance-web") → klik **Register app**
-6. **Copy semua nilai config** yang muncul (apiKey, authDomain, dll) — lo butuh ini nanti
+1. Buka **console.firebase.google.com** → **Add project** → nama misal `finance-berdua`
+2. **Project Settings** → **Your apps** → `</>` Web → Register → copy `FIREBASE_CONFIG`
+3. **Build → Realtime Database** → Create Database → lokasi **Singapore (asia-southeast1)** → **Start in test mode** → Enable
+4. **Build → Authentication** → Sign-in method → enable **Anonymous**
 
-### Setup Database:
-7. Di sidebar kiri, klik **Build → Realtime Database**
-8. Klik **"Create Database"**
-9. Pilih lokasi **Singapore (asia-southeast1)** → klik Next
-10. Pilih **"Start in test mode"** → klik Enable
+### Rules (opsional, sudah ada `firebase.rules.json`)
+```json
+{ "rules": { "finance_berdua": { ".read": "auth != null", ".write": "auth != null" } } }
+```
 
 ---
 
-## LANGKAH 2 — Isi Config ke File
+## LANGKAH 2 — Isi Config
 
-1. Buka file **`index.html`** dengan Notepad (Windows) atau TextEdit (Mac)
-2. Cari bagian ini di baris ~24:
-
-```
+1. Buka `src/config/firebase.js`:
+```js
 const FIREBASE_CONFIG = {
-  apiKey:            "GANTI_API_KEY_LO",
-  authDomain:        "GANTI_PROJECT_ID.firebaseapp.com",
-  databaseURL:       "https://GANTI_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
+  apiKey: "GANTI_API_KEY",
+  authDomain: "GANTI_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://GANTI_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "GANTI_PROJECT_ID",
   ...
 };
 ```
-
-3. Ganti setiap nilai `"GANTI_..."` dengan nilai dari config Firebase lo
-4. **Save** file-nya
-
----
-
-## LANGKAH 3 — Deploy ke Netlify (±2 menit)
-
-1. Buka **app.netlify.com** → Login dengan Google
-2. Klik **"Add new site" → "Deploy manually"**
-3. **Drag & drop folder `finance-berdua`** ke area yang muncul
-4. Tunggu sebentar... ✅ **Selesai!**
-5. Netlify kasih link otomatis, contoh: `https://spontaneous-mochi-abc123.netlify.app`
-
-### Kasih nama yang lebih gampang (opsional):
-- Di dashboard Netlify → **Site configuration → Change site name**
-- Ganti jadi misalnya `finance-kita` → linknya jadi `finance-kita.netlify.app`
+2. Ganti `GANTI_...` dengan nilai dari Firebase Console → Save
+3. Config otomatis ke-copy ke `dist/` pas `npm run build`
 
 ---
 
-## LANGKAH 4 — Share ke Pasangan
+## LANGKAH 3 — Build (±1 menit)
 
-Kirim link Netlify ke pasangan lo lewat WhatsApp.
+```bash
+npm install
+npm run build
+```
 
-**Di iPhone (biar kayak app beneran):**
-1. Buka link di **Safari**
-2. Tap ikon **Share** (kotak dengan panah ke atas)
-3. Tap **"Add to Home Screen"**
-4. Tap **"Add"**
-
-Sekarang ikonnya muncul di home screen iPhone, tinggal tap langsung buka! 🎉
+Output: `dist/` (app.js + tabs + config + icon + Finance_Tracker_Pro.xlsx + manifest.json)
+- `dist/` sudah di-`.gitignore` — jangan commit manual, hasil `npm run build`
+- Cek lokal: `npx serve dist` atau `python -m http.server 8765` → buka `http://localhost:8765/index.html`
 
 ---
 
-## ✅ Checklist Sebelum Pakai
+## LANGKAH 4 — Deploy
 
-- [ ] Firebase config sudah diisi di index.html
-- [ ] Realtime Database sudah di-enable di Firebase Console
-- [ ] App sudah bisa dibuka di browser
-- [ ] Lo dan pasangan bisa login dengan nama masing-masing
-- [ ] Coba input transaksi → cek apakah muncul di HP pasangan (real-time!)
+### Opsi A — Cloudflare Workers (recommended, ada `/api/scan-struk` proxy)
+
+```bash
+npx wrangler login
+npx wrangler secret put GEMINI_API_KEY
+# paste key dari https://aistudio.google.com/app/apikey
+
+npx wrangler deploy
+```
+
+- `wrangler.jsonc` sudah set `assets.directory = "dist"` + `not_found_handling = "single-page-application"` + `main = "worker.js"`
+- Worker proxy: `POST /api/scan-struk` → Gemini 2.5 Flash (struk scan). Tanpa secret, scan akan `500 GEMINI_API_KEY not set`
+- Dev lokal: `npm run dev` atau `npx wrangler dev --assets dist`
+
+### Opsi B — Netlify (tanpa Worker scan)
+
+1. Buka **app.netlify.com** → **Add new site → Deploy manually**
+2. **Drag & drop folder `dist`** (bukan `finance-berdua/` atau root) → selesai
+3. `app.netlify.com` kasih link `https://xxx.netlify.app` → optional rename `finance-kita.netlify.app`
+4. Catatan: fitur Foto Struk (Gemini) tidak jalan tanpa Worker. Alternatif: deploy Worker terpisah untuk `/api/scan-struk`
+
+---
+
+## LANGKAH 5 — Flow Saldo Awal (biar balance M-banking)
+
+1. Buka link → isi nama → login
+2. **Set Saldo Awal** muncul (jika DB kosong): isi **QRIS** (M-banking) + **Cash** → Simpan. Atau Lewati kalau saldo 0
+3. Dashboard `QRIS` = bandingkan dengan M-banking, `Total = QRIS + Cash`
+4. **Atur Cash** (Input → Atur Cash): Tarik/Setor + isi **Biaya admin** opsional (otomatis jadi Pengeluaran Tagihan QRIS)
+5. **Koreksi Saldo** (Dashboard → ⚖️ Koreksi Saldo): isi saldo M-banking sekarang → selisih auto jadi Penyesuaian Saldo
+
+Test: Saldo awal 5jt QRIS → tarik 500k + admin 5k → QRIS 4.495.000 Cash 500k Total 4.995.000
+
+---
+
+## LANGKAH 6 — Share ke Pasangan
+
+Kirim link deploy ke pasangan via WhatsApp. Buka link yang sama di 2 HP → login nama beda → data sync real-time + notifikasi.
+
+**iPhone Add to Home Screen:** Safari → Share (kotak panah atas) → Add to Home Screen → Add
+
+---
+
+## ✅ Checklist
+
+- [ ] `src/config/firebase.js` sudah diisi
+- [ ] Realtime Database + Anonymous Auth enabled
+- [ ] `npm run build` sukses, `dist/` ke-generate
+- [ ] Deploy `dist` (Wrangler atau Netlify) bisa dibuka
+- [ ] 2 HP login nama beda → input muncul real-time
+- [ ] Saldo QRIS balance dengan M-banking
 
 ---
 
 ## ❓ Troubleshooting
 
-**Data ga ke-sync?**
-→ Pastikan Realtime Database sudah di-enable dan rules-nya "test mode"
+**Data ga ke-sync?** → Cek Realtime Database rules `auth != null` dan Firebase config benar
 
-**App ga bisa dibuka?**
-→ Pastikan semua nilai FIREBASE_CONFIG sudah diisi dengan benar (tidak ada yang masih "GANTI_...")
+**Scan struk 500?** → `wrangler secret put GEMINI_API_KEY` belum diisi
 
-**Export Excel ga jalan?**
-→ Upload dulu file Finance_Tracker_Pro.xlsx di halaman Dashboard
+**Export Excel ga jalan?** → Upload dulu `Finance_Tracker_Pro.xlsx` di Dashboard (disimpan di IndexedDB) → Export lagi
+
+**Build gagal `JSX`?** → `node scripts/build.js` pakai `esbuild --jsx=transform`. Pastikan `npm install` sudah
